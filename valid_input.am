@@ -1,0 +1,15 @@
+MAIN:movM1[r2][r7],LENGTH
+addr2,STR
+LOOP:jmpEND
+prn#-5
+subr1,r4
+incK
+movM1[r3][r3],r3
+bneLOOP
+END:stop
+STR:.string"abcdef"
+LENGTH:.data6,-9,15
+K:.data22
+movM1[r3][r3],r3
+bneLOOP
+M1:.mat[2][2]1,2,3,4
