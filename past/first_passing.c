@@ -1,6 +1,6 @@
-#include "assembler.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "data_structs.h"
 #include "help_functions.h"
 
 /* a function to check how many lines there are in the file */
@@ -24,7 +24,6 @@ int count_lines_in_file(const char *filename) {
     return count;
 }
 
-/*
 int main(int argc, char *argv[]) {
     while (--argc > 0) {
         char *filename = argv[argc];
@@ -46,4 +45,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-*/
