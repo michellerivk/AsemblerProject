@@ -27,3 +27,5 @@ int is_command_ok(char *word);
 void add_label_to_table();
 
 int check_for_label(label *list, char *label);
+
+int is_number_ok(char *input);
