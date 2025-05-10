@@ -624,6 +624,24 @@ int count_lines_in_file(const char *filename)
     return count;
 }
 
+int get_instruction(char *com) 
+{
+    if (strcmp(com, "stop") == 0 || strcmp(com, "rts") == 0)
+    {
+        return 1;
+    }
+    else if (strcmp(com, "jmp") == 0 || strcmp(com, "bne") == 0 || strcmp(com, "jsr") == 0 || strcmp(com, "prn") == 0 ||
+             strcmp(com, "not") == 0 || strcmp(com, "clr") == 0 || strcmp(com, "inc") == 0 || strcmp(com, "dec") == 0 ||
+             strcmp(com, "red") == 0)
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+
 /* Checks if line has a label, data section or a command.*/
 void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
@@ -684,6 +702,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     }
     else
     {
+        int instruction; 
+
         /* Checks if there's a label in the line */
         if (strchr(line, ':') != NULL)
         {
@@ -752,6 +772,9 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             {
                 printf("FOR DEBUGGING: The line starts with the command: %s", str);
             }
+
+            instruction = get_instruction(str);
+            table->instruction_counter += instruction;
         }
     }    
 }
