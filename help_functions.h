@@ -1,3 +1,5 @@
+#include "assembler.h"
+
 /* Create enum for boolean expressions */
 typedef enum { false, true } bool;
 
@@ -14,14 +16,6 @@ char *add_ending(const char *file_name, const char *ending);
  * @param input The given string.
  * @param i The start of the string.
  */
-int delete_white_spaces(char input[], int i)
-{
-    while (input[i] == ' ' || input[i] == '\t')
-    {
-        i++;
-    }
+int delete_white_spaces(char input[], int i);
 
-    return i;
-}
-
-void check_line(char *line, int line_number, assembler_table *table);
+void check_line(char *line, int line_number, assembler_table *table, int *error_count);

@@ -16,6 +16,12 @@ int main(int argc , char ** argv){
 
         print_macros(assembler->macro_list);
 
+        if (!first_pass(argv[i], assembler)) 
+        {
+            printf("First pass failed.\n");
+            return 1;
+        }
+
         second_pass(&assembler);
 
         translation_unit(assembler);

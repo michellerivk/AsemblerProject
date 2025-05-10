@@ -3,19 +3,31 @@
 #include <string.h>
 #include <ctype.h>
 #include "help_functions.h"
-#include "assembler.h"
+/* include assembler.h -> help_functions.h */
 
-add_directive(assembler_table *table)
+/* Deletes the following white spaces */
+int delete_white_spaces(char input[], int i)
+{
+    while (input[i] == ' ' || input[i] == '\t')
+    {
+        i++;
+    }
+
+    return i;
+}
+
+
+void add_directive(assembler_table *table)
 {
 
 }
 
-add_label(assembler_table *table, char *line, int index)
+void add_label(assembler_table *table, char *line)
 {
-
+    
 }
 
-add_command(char *instr_str, assembler_table *table)
+void add_command(char *instr_str, assembler_table *table)
 {
     
 }
@@ -144,10 +156,12 @@ int is_label_ok(char *label)
  *         The true and false are part of an enum that exists in the help_functions.h file.
  */
 
+ /*************************CHECK IT************************************* */
 char *get_label(char *line, int i)
 {
     int start = delete_white_spaces(line, i);
     int len = 0;
+    char *label;
 
     /* measure up to the colon or end of buffer */
     while (line[start + len] != ':' &&
@@ -157,12 +171,12 @@ char *get_label(char *line, int i)
     }
 
     if (line[start + len] != ':') {
-        /* no colon found → bad label */
+        /* no colon found */
         return NULL;
     }
 
     /* allocate and copy */
-    char *label = malloc(len + 1);
+    label = (char *)malloc(len + 1);
     if (!label) {
         fprintf(stderr, "ERROR: Out of memory in get_label()\n");
         exit(1);
@@ -206,7 +220,7 @@ int count_lines_in_file(const char *filename)
  * @param line_number The line number.
  * @param table The struct where we will save our conclusion.
  */
-void check_line(char *line, int line_number, assembler_table *table)
+void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
     char *commands[] = 
     {
@@ -247,6 +261,7 @@ void check_line(char *line, int line_number, assembler_table *table)
             if(count == 0)
             {
                 printf("ERROR: The directive doesn't exist.\n");
+                (*error_count)++;
             }
             else
             {
@@ -259,6 +274,7 @@ void check_line(char *line, int line_number, assembler_table *table)
         else
         {
             printf("ERROR: There's a directive in the wrong place.\n ");
+            (*error_count)++;
         }
     }
     else
@@ -268,19 +284,10 @@ void check_line(char *line, int line_number, assembler_table *table)
         {
             if (is_label_ok(line) == 1)
             {
-                char *name = get_label(line, i);
+                /* Adds the label to the table */
+                add_label(table, get_label(line,i));
 
-                label *lbl = malloc(sizeof *lbl);
-                strcpy(lbl->name, name);  
-                lbl->address = table->instruction_counter;
-                lbl->type    = R;
-                lbl->next    = table->label_list;
-                table->label_list = lbl;
-
-                free(name);
-
-               /*  table->label_list->name = get_label(line, i); */
-
+                /* Checks if there's a directive after the label */
                 if (strchr(line, '.') != NULL)
                 {
                     /* Skips the label */
@@ -291,11 +298,12 @@ void check_line(char *line, int line_number, assembler_table *table)
                     
                     i++;
 
-                    i = delete_white_spaces;
+                    i = delete_white_spaces(line, i);
 
                     if (line[i] != '.')
                     {
                         printf("ERROR: There's a directive in the wrong place.");
+                        (*error_count)++;
                     }
 
                     else
@@ -311,7 +319,7 @@ void check_line(char *line, int line_number, assembler_table *table)
         /* Checks if there's a command */
         else
         {
-            while (line[i] != ' ')
+            while (line[i] != ' ' && line[i] != '\n' )
             {
                 str[j++] = line[i++];
             }
@@ -329,6 +337,7 @@ void check_line(char *line, int line_number, assembler_table *table)
             if(count == 0)
             {
                 printf("ERROR: The directive doesn't exist.\n");
+                (*error_count)++;
             }
 
             else

@@ -99,6 +99,10 @@ void ent_file(assembler_table * assembler);
 void files_treatment(assembler_table * assembler);
 void macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH], FILE *fp_as, macro_content **content);
 
+
+int first_pass(const char *file, assembler_table *table);
+
+
 /**
   המעבר השני
   להשלים את המילה של התוויות בתוך הרשימה של הCOMMAND
