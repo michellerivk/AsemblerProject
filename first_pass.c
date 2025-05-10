@@ -24,7 +24,8 @@ int first_pass(const char *file, assembler_table *table)
     }
 
     /* Checks every line of the file to insert into the table. */
-    while (fgets(line, MAX_LINE_LENGTH, am)) {
+    while (fgets(line, MAX_LINE_LENGTH, am)) 
+    {
         line_number++;
         check_line(line, line_number ,table, &error_count);
     }

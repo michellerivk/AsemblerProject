@@ -10,7 +10,7 @@ int main(int argc , char ** argv){
         assembler = initialize_assembler_table(argv[i]);
         
 
-        pre_proc(&assembler);
+        /*pre_proc(&assembler);*/
 
         print_assembler_table(assembler);
 

@@ -19,3 +19,11 @@ char *add_ending(const char *file_name, const char *ending);
 int delete_white_spaces(char input[], int i);
 
 void check_line(char *line, int line_number, assembler_table *table, int *error_count);
+
+char *get_label(char *line, int i);
+
+int is_command_ok(char *word);
+
+void add_label_to_table();
+
+int check_for_label(label *list, char *label);

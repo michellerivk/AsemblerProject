@@ -13,6 +13,13 @@
 #define MASK_TWO_BITS 3
 #define UP_TO_CHARACTER 65
 
+/* Deffinitions for the first_pass() */
+#define CODE 0
+#define DATA 1
+#define STRING 2
+#define MATRIX 3
+#define EXTERNAL 4
+
 typedef struct macro_content{
     char content_line[MAX_LINE_LENGTH];
     struct macro_content * next;

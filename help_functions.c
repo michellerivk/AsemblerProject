@@ -22,47 +22,155 @@ void add_directive(assembler_table *table)
 
 }
 
-void add_label(assembler_table *table, char *line)
+void add_label(assembler_table *table, char *line, int i, int *error_count)
 {
-    
-}
+    char next[MAX_LINE_LENGTH];
+    char *lbl = get_label(line, i); /* Gets the label name out of the line */
+    int type;
+    int j = 0;
 
-void add_command(char *instr_str, assembler_table *table)
-{
-    
-}
-
-/**
- * The function adds an ending to the given file name.
- *
- * @param filename The given name of the file.
- * @param ending The file ending.
- * @return A pointer to the new name.
- *         If memory allocation fails, the function returns an errors.
- */
-char *add_ending(char *file_name, const char *ending) 
-{
-    char *new_file = malloc(strlen(file_name) + strlen(ending) + 1);
-    
-    /* checks if there is enough memory to allocate */
-    if (!new_file) 
+    while (line[i] && line[i] != ':') 
     {
-        /* prints error if no */
-        fprintf(stderr, "Memory allocation failed\n");
+        (i)++;
+    }
+
+    if (line[i] == ':') 
+    {
+        (i)++;
+    }
+
+    /* Deletes whitespaces after the label */
+    i = delete_white_spaces(line, i);
+
+    /* Get the next word in line */
+    while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') 
+    {
+        next[j++] = line[i];
+        i++;
+    }
+
+    next[j] = '\0';
+
+    /* Check the type of the label */
+    if (next[0] == '.') 
+    {
+        if (strcmp(next, ".data") == 0 || strcmp(next, ".string") == 0 || strcmp(next, ".mat") == 0)
+        {
+            type = DATA;
+        }
+        else if (strcmp(next, ".extern") == 0)
+        {
+            type = EXTERNAL;
+        }
+        else if (strcmp(next, ".entry") == 0)
+        {
+            type = ENTRY;
+        }
+        else 
+        {
+            printf("ERROR: The directive: %s after label is not known\n", next);
+            (*error_count)++;
+            free(lbl);
+            return;
+        }
+    }
+
+    else if (is_command_ok(next)) 
+    {
+        type = CODE;
+    } 
+    else 
+    {
+        printf("ERROR: The command or directive: %s after label is not known.\n", next);
+        (*error_count)++;
+
+        free(lbl);
+        return;
+    }
+
+    add_label_to_table(table, lbl, type, error_count);
+    free(lbl);
+
+}
+
+void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
+{
+    label *new_label = (label *)malloc(sizeof(label));
+    if (!new_label) 
+    {
+        printf("ERROR: Memory allocation failed\n");
         exit(1);
     }
 
-    strcpy(new_file, file_name);
-    strcat(new_file, ending);
-    return new_file;
+    /* Checks if the label exists already in the table */
+    if (check_for_label(table->label_list, lbl)) 
+    {
+        printf("ERROR: The label: %s exists already in the table.", lbl);
+        (*error_count)++;
+        return; 
+    }
+
+    strcpy(new_label->name, lbl);
+    new_label->address = (type == DATA) ? table->data_counter : table->instruction_counter;
+    new_label->type = type;
+    new_label->next = NULL;
+
+    /* Adds the first label if there were none before */
+    if (table->label_list == NULL) 
+    {
+        table->label_list = new_label;
+    } 
+
+    /* Adds the label to the end of the table */ 
+    else 
+    {
+        label *temp = table->label_list;
+        while (temp->next != NULL) 
+        {
+            temp = temp->next;
+        }
+        temp->next = new_label;
+    }
 }
 
-/**
- * The function makes all string letters uppercase.
- *
- * @param label The given label.
- * @return true if the label is a reserved word of the essembler, false otherwise.
- */
+/* Checks if label exists already. Returns an true if yes, false otherwise */
+int check_for_label(label *list, char *label)
+{
+    while (list != NULL) 
+    {
+        if (strcmp(list->name, label) == 0) 
+        {
+
+            return true;
+        }
+        list = list->next;
+    }
+
+    return false;
+}
+
+/* Checks if the command name is */
+int is_command_ok(char *word)
+{
+    char *commands[] = 
+    {
+        "mov", "cmp", "add", "sub", "not", "clr", "lea", 
+        "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
+    };
+
+    int amount_of_commands = 16;
+
+    int i;
+
+    /* Checks if the given word is a command */
+    for (i = 0; i < amount_of_commands; i++) {
+        if (strcmp(word, commands[i]) == 0)
+            return true; 
+    }
+    return false;
+}
+
+/* Checks if the label is a reserved word. Returns true if yes. */
 int is_reserved_word(const char *label) {
     char *reserved[] = {
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
@@ -285,7 +393,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             if (is_label_ok(line) == 1)
             {
                 /* Adds the label to the table */
-                add_label(table, get_label(line,i));
+                add_label(table, line, i, error_count);
 
                 /* Checks if there's a directive after the label */
                 if (strchr(line, '.') != NULL)
@@ -296,7 +404,10 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
                         i++;
                     }
                     
-                    i++;
+                    if (line[i] == ':') 
+                    {
+                        i++;
+                    }
 
                     i = delete_white_spaces(line, i);
 
