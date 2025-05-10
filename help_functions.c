@@ -5,6 +5,48 @@
 #include "help_functions.h"
 /* include assembler.h -> help_functions.h */
 
+/* Adds a data node to a list */
+void add_data_node(assembler_table *table, data *new_node)
+{
+    /* Adds the first node if there were none before */
+    if (table->data_section == NULL) 
+    {
+        table->data_section = new_node;
+    }
+
+    /* Adds the node to the end of the list */ 
+    else 
+    {
+        data *temp = table->data_section;
+        while (temp->next != NULL) 
+        {
+            temp = temp->next;
+        }
+        temp->next = new_node;
+    }
+}
+
+/* Adds a label node to a list */
+void add_label_node(assembler_table *table, label *new_node)
+{
+    /* Adds the first node if there were none before */
+    if (table->label_list == NULL) 
+    {
+        table->label_list = new_node;
+    }
+
+    /* Adds the node to the end of the list */ 
+    else 
+    {
+        label *temp = table->label_list;
+        while (temp->next != NULL) 
+        {
+            temp = temp->next;
+        }
+        temp->next = new_node;
+    }
+}
+
 /* Deletes the following white spaces */
 int delete_white_spaces(char input[], int i)
 {
@@ -16,12 +58,298 @@ int delete_white_spaces(char input[], int i)
     return i;
 }
 
-
-void add_directive(assembler_table *table)
+/* Imports the necessary data for the table, and adds it to the table */
+void add_directive(assembler_table *table, char *line, int *error_count, char *directive)
 {
+    if (strcmp(directive, ".data") == 0)
+    {
+        char *input = strstr(line, ".data");
 
+        /* Checks .data exists */
+        if (input != NULL)
+        {        
+            char copy_of_line[MAX_LINE_LENGTH];
+            char *arg;
+            
+            int value;
+            if (input != NULL) 
+            {
+                int i = (int)(input - line);
+                i += 5; 
+                i = delete_white_spaces(line, i);
+                input = &line[i];
+            }
+
+            /* Copies the line to not ruin it accidentally */
+            strcpy(copy_of_line, input);
+
+            /* Splits the part with the , into mutiple arguments */
+            arg = strtok(copy_of_line, ",");
+            while (arg != NULL) 
+            {
+                data *new_directive = (data *)malloc(sizeof(data)); 
+
+                /* Returns error if memory allocation failed */
+                if (!new_directive) {
+                    printf("ERROR: Memory allocation failed.\n");
+                    exit(1);
+                }
+
+                /* Removes white spaces */
+                while (*arg == ' ' || *arg == '\t')
+                {
+                    arg++;
+                }
+                
+                if (!is_number_ok(arg)) 
+                {
+                    printf("ERROR: The argument %s is not a number!\n", arg);
+                    (*error_count)++;
+                    arg = strtok(NULL, ",");
+                    continue;
+                }   
+                
+                value = atoi(arg); 
+
+                new_directive->word.value = value;
+                new_directive->address = table->data_counter;
+                new_directive->next = NULL;
+
+                /* Add the node to the list */
+                add_data_node(table, new_directive);
+
+                table->data_counter++;
+
+                arg = strtok(NULL, ",");
+            }
+        }
+    }
+    else if (strcmp(directive, ".string") == 0)
+    {
+        char *input = strstr(line, ".string");
+
+        if (input != NULL)
+        {
+            data *null_node;
+            int i = (int)(input - line);
+            i += 7; 
+            i = delete_white_spaces(line, i);
+
+            if (line[i] != '\"') 
+            {
+                printf("ERROR: There are no quotation marks straightly after .string\n");
+                (*error_count)++;
+                return;
+            }
+
+            i++; /* Skips the first " */
+
+            while (line[i] != '\0' && line[i] != '\"') 
+            {
+                data *new_directive = (data *)malloc(sizeof(data));
+
+                /* Checks if memory allocation failed */
+                if (!new_directive) 
+                {
+                    printf("ERROR: Memory allocation failed.\n");
+                    exit(1);
+                }
+    
+                new_directive->word.value = (int)line[i];
+                new_directive->address = table->data_counter;
+                new_directive->next = NULL;
+    
+                add_data_node(table, new_directive);
+    
+                table->data_counter++;
+                i++;
+            }
+
+            /* Checks if the string ends with " */
+            if (line[i] != '\"') 
+            {
+                printf("ERROR: Missing closing quotation mark in .string directive\n");
+                (*error_count)++;
+                return;
+            }
+
+            /* Adds 0 at the end of the string list */
+            null_node = (data *)malloc(sizeof(data));
+
+            /* Checks if memory allocation failed */
+            if (!null_node) {
+                printf("ERROR: Memory allocation failed.\n");
+                exit(1);
+            }
+
+            null_node->word.value = 0;
+            null_node->address = table->data_counter;
+            null_node->next = NULL;
+
+            /* Adds the node to the list */
+            add_data_node(table, null_node);
+
+            table->data_counter++;
+
+        }
+    }
+    else if (strcmp(directive, ".mat") == 0)
+    {
+        int rows, cols, j;
+        int count = 0; /* Counts the amount of numbers in the matrix that were given */
+
+        char *input = strstr(line, ".mat"); /* The start of .mat */
+        int i = (int)(input - line);
+
+        char copy_of_line[MAX_LINE_LENGTH]; /* Holds a copy of our line, so that it won't be ruined */
+
+        char *arg;
+
+        i += 4; /* Skips .mat */
+        i = delete_white_spaces(line, i);
+
+        input = &line[i];
+
+        /* Checks if the input of the matrix is ok */
+        if (sscanf(input, "[%d][%d]", &rows, &cols) != 2) 
+        {
+            printf("ERROR: The matrix was entered wrongly\n");
+            (*error_count)++;
+            return;
+        }
+
+        /* Gets to the arguments part */
+        for (j = 0; j < 2; j++)
+        {
+            while (line[i] != '\0' && line[i] != ']')
+            {
+                i++;
+            }
+
+            if (line[i] == ']')
+            {
+                i++;
+            }
+
+            i = delete_white_spaces(line,i);
+        }
+
+        /* Makes copy of the line */
+        strncpy(copy_of_line, &line[i], MAX_LINE_LENGTH - 1);
+
+        /* Ends the line */
+        copy_of_line[MAX_LINE_LENGTH - 1] = '\0';
+
+        /* Seperates arguments */
+        arg = strtok(copy_of_line, ",");
+
+        while (arg != NULL) 
+        {
+            data *mat_node = (data *)malloc(sizeof(data)); /* The node we're adding to the table */
+
+            /* Checks if memory allocation failed */
+            if (!mat_node) 
+            {
+                printf("ERROR: Memory allocation failed.\n");
+                exit(1);
+            }
+            
+            /* Skips white spaces */
+            while (*arg == ' ' || *arg == '\t')
+            {
+                arg++;
+            }
+        
+            /* Checks if valid arguments were given */
+            if (!is_number_ok(arg)) 
+            {
+                printf("ERROR: '%s' is not a valid number in .mat\n", arg);
+                (*error_count)++;
+                arg = strtok(NULL, ",");
+                continue;
+            }
+        
+            /* Fills the table */
+            mat_node->word.value = atoi(arg);
+            mat_node->address = table->data_counter++;
+            mat_node->next = NULL;
+
+            /* Add the directive to the table */
+            add_data_node(table, mat_node);
+        
+            count++; /* Adds an argument to the counter */
+
+            arg = strtok(NULL, ",");
+        }
+        
+        /* Checks if the amount of numbers is exactly the amount neede to fill the given matrix */
+        if (count != rows * cols) 
+        {
+            printf("ERROR: Got %d values instead of %d\n", count, rows * cols);
+            (*error_count)++;
+        }
+    }    
+    else if (strcmp(directive, ".entry") == 0)
+    {
+        return;
+        /* ###############Second Pass################### */
+    }    
+    else if (strcmp(directive, ".extern") == 0)
+    {
+        int type = EXTERNAL;
+        char *input = strstr(line, ".extern");
+
+        if (input != NULL)
+        {
+            char lbl[MAX_LABEL_LENGTH];
+            int j = 0;
+            int i = (int)(input - line);
+            i += 7;
+            i = delete_white_spaces(line, i);
+
+            while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
+            {
+                lbl[j++] = line[i++];
+            }
+
+            lbl[j] = '\0';
+
+            add_label_to_table(table, lbl, type, error_count);
+        }
+    }    
 }
 
+/* Checks if the given input is a number */
+int is_number_ok(char *input)
+{
+    int i = 0;
+
+    /* Skips the number sign */
+    if (input[i] == '-' || input[i] == '+') 
+    {
+        i++;
+    }
+    
+    /* Checks if the first digit is a digit */
+    if (!isdigit(input[i])) 
+    {
+        return false;
+    }
+    
+    /* Checks the rest of the input */
+    while (input[i] != '\0' && input[i] != '\n') 
+    {
+        if (!isdigit(input[i])) 
+        {
+            return false;
+        }
+        i++;
+    }
+    
+    return true;
+}
+
+/* Imports the necessary data for the table, and calls add_label_to_table function */
 void add_label(assembler_table *table, char *line, int i, int *error_count)
 {
     char next[MAX_LINE_LENGTH];
@@ -93,6 +421,7 @@ void add_label(assembler_table *table, char *line, int i, int *error_count)
 
 }
 
+/* Adds label to the table */
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
@@ -115,22 +444,8 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     new_label->type = type;
     new_label->next = NULL;
 
-    /* Adds the first label if there were none before */
-    if (table->label_list == NULL) 
-    {
-        table->label_list = new_label;
-    } 
-
-    /* Adds the label to the end of the table */ 
-    else 
-    {
-        label *temp = table->label_list;
-        while (temp->next != NULL) 
-        {
-            temp = temp->next;
-        }
-        temp->next = new_label;
-    }
+    /* add the lable to the list */
+    add_label_node(table, new_label);
 }
 
 /* Checks if label exists already. Returns an true if yes, false otherwise */
@@ -149,7 +464,7 @@ int check_for_label(label *list, char *label)
     return false;
 }
 
-/* Checks if the command name is */
+/* Checks if the command name is ok */
 int is_command_ok(char *word)
 {
     char *commands[] = 
@@ -190,13 +505,7 @@ int is_reserved_word(const char *label) {
 }
 
 
-/**
- * The function checks if the name of the label is good.
- *
- * @param label The given label.
- * @return true if the label is good, else otherwise.
- *         The true and false are part of an enum that exists in the help_functions.h file.
- */
+/* Checks if the name of the label is good. */
 int is_label_ok(char *label)
 {
     char label_name[MAX_LABEL_LENGTH];
@@ -256,13 +565,7 @@ int is_label_ok(char *label)
 }
 
 
-/**
- * The function checks if the name of the label is good.
- *
- * @param label The given label.
- * @return true if the label is good, else otherwise.
- *         The true and false are part of an enum that exists in the help_functions.h file.
- */
+/* Checks if the name of the label is good. */
 
  /*************************CHECK IT************************************* */
 char *get_label(char *line, int i)
@@ -321,13 +624,25 @@ int count_lines_in_file(const char *filename)
     return count;
 }
 
-/**
- * The function checks if line has a label, data section or a command.
- *
- * @param line The given line.
- * @param line_number The line number.
- * @param table The struct where we will save our conclusion.
- */
+int get_instruction(char *com) 
+{
+    if (strcmp(com, "stop") == 0 || strcmp(com, "rts") == 0)
+    {
+        return 1;
+    }
+    else if (strcmp(com, "jmp") == 0 || strcmp(com, "bne") == 0 || strcmp(com, "jsr") == 0 || strcmp(com, "prn") == 0 ||
+             strcmp(com, "not") == 0 || strcmp(com, "clr") == 0 || strcmp(com, "inc") == 0 || strcmp(com, "dec") == 0 ||
+             strcmp(com, "red") == 0)
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+
+/* Checks if line has a label, data section or a command.*/
 void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
     char *commands[] = 
@@ -375,7 +690,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             {
                 printf("FOR DEBUGGING: The name of the dericetive is: %s\n", str);
 
-                add_directive(table);
+                add_directive(table, line, error_count, str);
             }
         }
 
@@ -387,6 +702,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     }
     else
     {
+        int instruction; 
+
         /* Checks if there's a label in the line */
         if (strchr(line, ':') != NULL)
         {
@@ -455,6 +772,9 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             {
                 printf("FOR DEBUGGING: The line starts with the command: %s", str);
             }
+
+            instruction = get_instruction(str);
+            table->instruction_counter += instruction;
         }
     }    
 }

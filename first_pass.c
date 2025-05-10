@@ -10,6 +10,12 @@ int first_pass(const char *file, assembler_table *table)
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
+
+    /* 0-ing the table */
+    table->instruction_counter = 0;
+    table->data_counter = 0;
+    table->label_list = NULL;
+    table->data_section = NULL;
     
     /* Adds .am to the file name */
     add_suffix(full_file, file, ".am");
