@@ -3,47 +3,23 @@
 #include <stdlib.h>
 #include "help_functions.h"
 
-/* a function to check how many lines there are in the file */
-int count_lines_in_file(const char *filename) {
-    FILE *fp = fopen(filename, "r");
-    int count = 0;
-    char c;
+/* Runs the first pass */
+int first_pass_function(const char *file, assembler_table *table) 
+{
+    FILE *am = fopen(file, "r");
+    char line[MAX_LINE_LENGTH];
+    int line_number = 0;
 
-    if (!fp) {
-        printf("Error: Could not open file %s\n", filename);
-        return -1;
+    if (!am) {
+        printf("ERROR: Could not open file %s\n", file);
+        return 0;
     }
 
-    while ((c = fgetc(fp)) != EOF) {
-        if (c == '\n') {
-            count++;
-        }
+    while (fgets(line, MAX_LINE_LENGTH, am)) {
+        line_number++;
+        check_line(line, line_number ,table);
     }
 
-    fclose(fp);
-    return count;
+    fclose(am);
+    return 1;
 }
-
-/*
-int main(int argc, char *argv[]) {
-    while (--argc > 0) {
-        char *filename = argv[argc];
-
-        char *as_file = add_ending(filename, ".as");
-
-        if (!macro(as_file)) {
-            continue;
-        }
-
-        char *am_file = add_new_file(filename, ".am");
-        if (exe_first_pass(am_file)) {
-            continue;
-        }
-
-        free(as_file);
-        free(am_file);
-    }
-
-    return 0;
-}
-*/
