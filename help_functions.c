@@ -669,6 +669,7 @@ int count_lines_in_file(const char *filename)
     return count;
 }
 
+/* Returns the amount of needed arguments for each command */
 int get_instruction(char *com) 
 {
     if (strcmp(com, "stop") == 0 || strcmp(com, "rts") == 0)
@@ -716,20 +717,18 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
     };
 
-    int com_len = sizeof(commands) / sizeof(commands[0]);
+    int com_len = sizeof(commands) / sizeof(commands[0]); /* The total size of the commands array */
 
     const char *directives[] = 
     {
         ".data", ".string", ".mat", ".entry", ".extern"
     };
 
-    int dir_len = sizeof(directives) / sizeof(directives[0]);
+    int dir_len = sizeof(directives) / sizeof(directives[0]); /* The total size of the directives array */
 
-    char str[MAX_LINE_LENGTH];
     int i = 0;
-    int j = 0;
-    int count = 0;
 
+    /* Skip white-spaces */
     i = delete_white_spaces(line, i);
 
     /* The line doesn't have a label */
@@ -757,6 +756,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
                 /* Handles the directive */
                 add_directive(table, line, error_count, directive);
             }
+
+            /* If there is no directive nor command, it will do nothing */
             else
             {
                 printf("Nothing to do in line: %s\n", line);
@@ -767,136 +768,65 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
 
     /* The line has a label */
-    else if (strchr(line, ':') == NULL && strchr(line, '.') != NULL)
-    {
-        if (line[i] == '.')
-        {
-            while (line[i] != ' ' && line[i] != '\t')
-            {
-                str[j++] = line[i++];
-            }
-            
-            /* Checks if the directive exists, Returns error if no. */
-            for (j = 0; j < sizeof(directives) / sizeof(directives[0]); j++) 
-            {
-                if (strcmp(str, directives[j]) == 0) 
-                {
-                    count++;
-                    break;
-                }
-            }
-            if(count == 0)
-            {
-                printf("ERROR: The directive doesn't exist.\n");
-                (*error_count)++;
-            }
-            else
-            {
-                /*###############3 JUST FOR ME ############### */
-                printf("FOR DEBUGGING: The name of the dericetive is: %s\n", str);
-
-                add_directive(table, line, error_count, str);
-            }
-        }
-
-        else
-        {
-            printf("ERROR: There's a directive in the wrong place.\n ");
-            (*error_count)++;
-        }
-    }
     else
     {
-        int instruction; 
-
-        /* Checks if there's a label in the line */
-        if (strchr(line, ':') != NULL)
+        if (is_label_ok(line))
         {
-            if (is_label_ok(line) == 1)
-            {  
+            int len;
+            add_label(table, line, i, error_count, commands, directives, com_len, dir_len);
 
-                /* Adds the label to the table */
-                add_label(table, line, i, error_count, commands, directives, com_len ,
-                          sizeof(directives) / sizeof(directives[0]));
-
-                i = delete_white_spaces(line, i);
-
-                while (line[i] != ':')
-                {
-                    i++;
-                }
-
-                if (line[i] == ':')
-                {
-                    i++;
-                }                
-                
-                /* Updates the ic */
-                update_ic(line, i, commands, com_len, table);
-
-                /* Checks if there's a directive after the label */
-                if (strchr(line, '.') != NULL)
-                {
-                    /* Skips the label */
-                    while (line[i] != ':')
-                    {
-                        i++;
-                    }
-                    
-                    if (line[i] == ':') 
-                    {
-                        i++;
-                    }
-
-                    i = delete_white_spaces(line, i);
-
-                    if (line[i] != '.')
-                    {
-                        printf("ERROR: There's a directive in the wrong place.");
-                        (*error_count)++;
-                    }
-
-                    else
-                    {
-                        printf("FOR DEBUGGING: There is a directive after the label: %s\n", str);
-                    }
-                }
-                
+            /* Skip the label */
+            while (line[i] && line[i] != ':') 
+            {
+                i++;
             }
-            
-        }
+            if (line[i] == ':') 
+            {
+                i++;
+            }
 
-        /* Checks if there's a command */
+            /* Skip white-spaces */
+            i = delete_white_spaces(line, i);
+            
+            /* Checks if there is a directive after the label */
+            len = check_word(line, i, directives, dir_len);
+            if (len != -1)
+            {
+                /* Gets the name of the directive */
+                char directive[MAX_LINE_LENGTH];
+                strncpy(directive, &line[i], len);
+                directive[len] = '\0';
+
+                /* Adds the directive to the table */
+                add_directive(table, line, error_count, directive);
+                return;
+            }
+
+            /* Checks if there's a command after the label */
+            len = check_word(line, i, commands, com_len);
+            if (len != -1)
+            {
+                /* Gets the name of the command */
+                char command_name[MAX_LINE_LENGTH];
+                strncpy(command_name, &line[i], len);
+                command_name[len] = '\0';
+
+                /* Adds the number of arguments to the IC */
+                table->instruction_counter += get_instruction(command_name);;
+
+                return;
+            }
+
+            /* Returns error if no */
+            printf("ERROR: Something other than a command or a directive was entered after the label: %s\n", &line[i]);
+            (*error_count)++;
+            return;
+        }
         else
         {
-            while (line[i] != ' ' && line[i] != '\n' )
-            {
-                str[j++] = line[i++];
-            }
-            
-            /* Checks if the command exists, Returns error if no. */
-            for (j = 0; j < com_len; j++) 
-            {
-                if (strcmp(str, commands[j]) == 0) 
-                {
-                    count++;
-                    break;
-                }
-            }
-
-            if(count == 0)
-            {
-                printf("ERROR: The directive doesn't exist.\n");
-                (*error_count)++;
-            }
-
-            else
-            {
-                printf("FOR DEBUGGING: The line starts with the command: %s", str);
-            }
-
-            instruction = get_instruction(str);
-            table->instruction_counter += instruction;
+            printf("ERROR: The label: %s wasn't entered correctly\n", line);
+            (*error_count)++;
+            return;
         }
-    }    
+    }
 }
