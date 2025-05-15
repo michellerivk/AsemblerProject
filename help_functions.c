@@ -5,6 +5,25 @@
 #include "help_functions.h"
 /* include assembler.h -> help_functions.h */
 
+/* Checks if the given word exists in the language */
+int check_word(char *line, int start, char **words, int amount) {
+    int i;
+    for (i = 0; i < amount; i++) 
+    {
+        int len = strlen(words[i]);
+        if (strncmp(&line[start], words[i], len) == 0) 
+        {
+            char next_char = line[start + len];
+            if (next_char == '\0' || next_char == ',' || next_char == '\n' ||
+                next_char == '@' || next_char == '"' || next_char == '[' || next_char == '#') 
+            {
+                return len;
+            }
+        }
+    }
+    return -1;
+}
+
 /* Adds a data node to a list */
 void add_data_node(assembler_table *table, data *new_node)
 {
@@ -350,8 +369,11 @@ int is_number_ok(char *input)
 }
 
 /* Imports the necessary data for the table, and calls add_label_to_table function */
-void add_label(assembler_table *table, char *line, int i, int *error_count)
+void add_label(assembler_table *table, char *line, int i, int *error_count, char *commands, char *directives)
 {
+    int commands_len = sizeof(commands) / sizeof(commands[0]);
+    int directives_len = sizeof(directives) / sizeof(directives[0]);
+    int len;
     char next[MAX_LINE_LENGTH];
     char *lbl = get_label(line, i); /* Gets the label name out of the line */
     int type;
@@ -370,7 +392,59 @@ void add_label(assembler_table *table, char *line, int i, int *error_count)
     /* Deletes whitespaces after the label */
     i = delete_white_spaces(line, i);
 
+    /* Checks if the next words matches a directive */
+    len = check_word(line, i, directives, directives_len);
+
+    if (len != -1)
+    {
+        if (strncmp(&line[i], ".data", len) == 0 || strncmp(&line[i], ".string", len) == 0 ||
+            strncmp(&line[i], ".mat", len) == 0) 
+        {
+            type = DATA;
+
+            /* ################FOR DEBUGGiNG################ */
+            printf("type = DATA");
+        } 
+        else if (strncmp(&line[i], ".extern", len) == 0) 
+        {
+            type = EXTERNAL;
+
+            /* ################FOR DEBUGGiNG################ */
+            printf("type = EXTERNAL");
+        } 
+        else if (strncmp(&line[i], ".entry", len) == 0) 
+        {
+            type = ENTRY;
+
+            /* ################FOR DEBUGGiNG################ */
+            printf("type = ENTRY");
+        } 
+        else 
+        {
+            printf("ERROR: The directive: %s after label is not known\n", &line[i]);
+            (*error_count)++;
+            free(lbl);
+            return;
+        }
+    }
+
+    /* Checks if the next words matches a command */
+    len = check_word(line, i, commands, commands_len);
+
+
+    if (len != -1)
+    {
+        type = CODE;
+        add_label_to_table(table, lbl, type, error_count);
+        free(lbl);
+        return;
+    }
+    
+
+
+
     /* Get the next word in line */
+    /*
     while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') 
     {
         next[j++] = line[i];
@@ -378,8 +452,10 @@ void add_label(assembler_table *table, char *line, int i, int *error_count)
     }
 
     next[j] = '\0';
-
+    */
+    
     /* Check the type of the label */
+    /*
     if (next[0] == '.') 
     {
         if (strcmp(next, ".data") == 0 || strcmp(next, ".string") == 0 || strcmp(next, ".mat") == 0)
@@ -402,11 +478,15 @@ void add_label(assembler_table *table, char *line, int i, int *error_count)
             return;
         }
     }
+    */
 
-    else if (is_command_ok(next)) 
+
+/*
+    if (is_command_ok(next)) 
     {
         type = CODE;
     } 
+*/
     else 
     {
         printf("ERROR: The command or directive: %s after label is not known.\n", next);
@@ -645,12 +725,12 @@ int get_instruction(char *com)
 /* Checks if line has a label, data section or a command.*/
 void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
-    char *commands[] = 
+    const char *commands[] = 
     {
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
     };
 
-    char *directives[] = 
+    const char *directives[] = 
     {
         ".data", ".string", ".mat", ".entry", ".extern"
     };
@@ -711,7 +791,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             if (is_label_ok(line) == 1)
             {
                 /* Adds the label to the table */
-                add_label(table, line, i, error_count);
+                add_label(table, line, i, error_count, commands, directives);
 
                 /* Checks if there's a directive after the label */
                 if (strchr(line, '.') != NULL)
