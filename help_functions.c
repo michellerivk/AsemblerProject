@@ -3,10 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 #include "help_functions.h"
-/* include assembler.h -> help_functions.h */
 
 /* Checks if the given word exists in the language */
-int check_word(char *line, int start, char **words, int amount) {
+int check_word(char *line, int start, const char *words[], int amount) {
     int i;
     for (i = 0; i < amount; i++) 
     {
@@ -14,8 +13,11 @@ int check_word(char *line, int start, char **words, int amount) {
         if (strncmp(&line[start], words[i], len) == 0) 
         {
             char next_char = line[start + len];
+
+            /* Checks if the next character is good */
             if (next_char == '\0' || next_char == ',' || next_char == '\n' ||
-                next_char == '@' || next_char == '"' || next_char == '[' || next_char == '#') 
+                next_char == '@' || next_char == '"' || next_char == '[' || next_char == '#' ||
+                !isalpha(next_char) || !isdigit(next_char)) 
             {
                 return len;
             }
@@ -369,15 +371,12 @@ int is_number_ok(char *input)
 }
 
 /* Imports the necessary data for the table, and calls add_label_to_table function */
-void add_label(assembler_table *table, char *line, int i, int *error_count, char *commands, char *directives)
+void add_label(assembler_table *table, char *line, int i, int *error_count, const char *commands[], const char *directives[],
+               int commands_len, int directives_len)
 {
-    int commands_len = sizeof(commands) / sizeof(commands[0]);
-    int directives_len = sizeof(directives) / sizeof(directives[0]);
     int len;
-    char next[MAX_LINE_LENGTH];
     char *lbl = get_label(line, i); /* Gets the label name out of the line */
     int type;
-    int j = 0;
 
     while (line[i] && line[i] != ':') 
     {
@@ -403,21 +402,21 @@ void add_label(assembler_table *table, char *line, int i, int *error_count, char
             type = DATA;
 
             /* ################FOR DEBUGGiNG################ */
-            printf("type = DATA");
+            printf("type = DATA\n");
         } 
         else if (strncmp(&line[i], ".extern", len) == 0) 
         {
             type = EXTERNAL;
 
             /* ################FOR DEBUGGiNG################ */
-            printf("type = EXTERNAL");
+            printf("type = EXTERNAL\n");
         } 
         else if (strncmp(&line[i], ".entry", len) == 0) 
         {
             type = ENTRY;
 
             /* ################FOR DEBUGGiNG################ */
-            printf("type = ENTRY");
+            printf("type = ENTRY\n");
         } 
         else 
         {
@@ -431,72 +430,21 @@ void add_label(assembler_table *table, char *line, int i, int *error_count, char
     /* Checks if the next words matches a command */
     len = check_word(line, i, commands, commands_len);
 
-
     if (len != -1)
     {
         type = CODE;
         add_label_to_table(table, lbl, type, error_count);
         free(lbl);
-        return;
-    }
-    
 
+        /* ################FOR DEBUGGiNG################ */
+            printf("type = CODE");
 
-
-    /* Get the next word in line */
-    /*
-    while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') 
-    {
-        next[j++] = line[i];
-        i++;
-    }
-
-    next[j] = '\0';
-    */
-    
-    /* Check the type of the label */
-    /*
-    if (next[0] == '.') 
-    {
-        if (strcmp(next, ".data") == 0 || strcmp(next, ".string") == 0 || strcmp(next, ".mat") == 0)
-        {
-            type = DATA;
-        }
-        else if (strcmp(next, ".extern") == 0)
-        {
-            type = EXTERNAL;
-        }
-        else if (strcmp(next, ".entry") == 0)
-        {
-            type = ENTRY;
-        }
-        else 
-        {
-            printf("ERROR: The directive: %s after label is not known\n", next);
-            (*error_count)++;
-            free(lbl);
-            return;
-        }
-    }
-    */
-
-
-/*
-    if (is_command_ok(next)) 
-    {
-        type = CODE;
-    } 
-*/
-    else 
-    {
-        printf("ERROR: The command or directive: %s after label is not known.\n", next);
-        (*error_count)++;
-
-        free(lbl);
         return;
     }
 
-    add_label_to_table(table, lbl, type, error_count);
+    /* If it was none of them */
+    printf("ERROR: The command or directive after label is not known: %s\n", &line[i]);
+    (*error_count)++;
     free(lbl);
 
 }
@@ -520,7 +468,17 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     }
 
     strcpy(new_label->name, lbl);
-    new_label->address = (type == DATA) ? table->data_counter : table->instruction_counter;
+
+    /* Checks what counter to assign to the address */
+    if (type == DATA)
+    {
+        new_label->address = table->data_counter;
+    }
+    else
+    {
+        new_label->address = table->instruction_counter;
+    }
+
     new_label->type = type;
     new_label->next = NULL;
 
@@ -791,7 +749,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             if (is_label_ok(line) == 1)
             {
                 /* Adds the label to the table */
-                add_label(table, line, i, error_count, commands, directives);
+                add_label(table, line, i, error_count, commands, directives, sizeof(commands) / sizeof(commands[0]) ,
+                          sizeof(directives) / sizeof(directives[0]));
 
                 /* Checks if there's a directive after the label */
                 if (strchr(line, '.') != NULL)
