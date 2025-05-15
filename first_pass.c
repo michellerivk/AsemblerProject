@@ -2,6 +2,46 @@
 #include <stdlib.h>
 #include "help_functions.h"
 
+/* #############DEBUGGING################33 */
+void print_assembler_table(assembler_table *table, int error_count)
+{
+    label *lbl = table->label_list;
+    data *data_node = table->data_section;
+
+    printf("\n========================\n");
+    printf("ASSEMBLER TABLE SUMMARY\n");
+    printf("========================\n");
+
+    printf("Instruction Counter (IC): %d\n", table->instruction_counter);
+    printf("Data Counter (DC): %d\n", table->data_counter);
+    printf("Total Errors: %d\n", error_count);
+
+    printf("\n-- LABELS --\n");
+    while (lbl != NULL) 
+    {
+        printf("Label: %-10s | Address: %-4d | Type: %s\n", 
+               lbl->name, 
+               lbl->address, 
+               lbl->type == CODE ? "CODE" :
+               lbl->type == DATA ? "DATA" :
+               lbl->type == EXTERNAL ? "EXTERNAL" : 
+               lbl->type == ENTRY ? "ENTRY" : "UNKNOWN");
+
+        lbl = lbl->next;
+    }
+
+    printf("\n-- DATA SECTION --\n");
+    while (data_node != NULL)
+    {
+        printf("Address: %-4d | Value: %-4d\n", data_node->address, data_node->word.value);
+        data_node = data_node->next;
+    }
+
+    printf("========================\n\n");
+}
+
+
+
 /* Runs the first pass */
 int first_pass(const char *file, assembler_table *table) 
 {
@@ -39,6 +79,8 @@ int first_pass(const char *file, assembler_table *table)
     /* Closes files and frees memory */
     fclose(am);
     free(full_file);
+
+    print_assembler_table(&table, error_count); /* ########debugging#####33 */
 
     /* Checks if there were any errors. Returns error if yes. */
     if (error_count != 0)

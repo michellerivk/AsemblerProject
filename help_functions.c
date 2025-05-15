@@ -4,17 +4,17 @@
 #include <ctype.h>
 #include "help_functions.h"
 
-/* Checks if the given word exists in the language */
+/* Checks if the given word exists in the given list of words */
 int check_word(char *line, int start, const char *words[], int amount) {
     int i;
     for (i = 0; i < amount; i++) 
     {
-        int len = strlen(words[i]);
+        int len = strlen(words[i]); /* Gets the length of each word in the list */
         if (strncmp(&line[start], words[i], len) == 0) 
         {
             char next_char = line[start + len];
 
-            /* Checks if the next character is good */
+            /* Checks if the next character after the command is good */
             if (next_char == '\0' || next_char == ',' || next_char == '\n' ||
                 next_char == '@' || next_char == '"' || next_char == '[' || next_char == '#' ||
                 !isalpha(next_char) || !isdigit(next_char)) 
@@ -371,12 +371,12 @@ int is_number_ok(char *input)
 }
 
 /* Imports the necessary data for the table, and calls add_label_to_table function */
-void add_label(assembler_table *table, char *line, int i, int *error_count, const char *commands[], const char *directives[],
-               int commands_len, int directives_len)
+void add_label(assembler_table *table, char *line, int i, int *error_count, 
+               const char *commands[], const char *directives[], int commands_len, int directives_len)
 {
     int len;
     char *lbl = get_label(line, i); /* Gets the label name out of the line */
-    int type;
+    int type = -1;
 
     while (line[i] && line[i] != ':') 
     {
@@ -426,26 +426,33 @@ void add_label(assembler_table *table, char *line, int i, int *error_count, cons
             return;
         }
     }
-
-    /* Checks if the next words matches a command */
-    len = check_word(line, i, commands, commands_len);
-
-    if (len != -1)
+    else
     {
-        type = CODE;
-        add_label_to_table(table, lbl, type, error_count);
-        free(lbl);
+        /* Checks if the next words matches a command */
+        len = check_word(line, i, commands, commands_len);
 
-        /* ################FOR DEBUGGiNG################ */
-            printf("type = CODE");
-
-        return;
+        if (len != -1)
+        {
+            type = CODE;
+            /* ################FOR DEBUGGiNG################ */
+            printf("type = CODE\n");
+        }
     }
 
-    /* If it was none of them */
-    printf("ERROR: The command or directive after label is not known: %s\n", &line[i]);
-    (*error_count)++;
-    free(lbl);
+    /* Checks if the type was changed */
+    if (type != -1)
+    {
+        add_label_to_table(table, lbl, type, error_count);
+        free(lbl);
+    }
+
+    else
+    {
+        /* If it wasnt a command nor a directive*/
+        printf("ERROR: The command or directive after label is not known: %s\n", &line[i]);
+        (*error_count)++;
+        free(lbl);
+    }
 
 }
 
@@ -680,6 +687,27 @@ int get_instruction(char *com)
     }
 }
 
+/* The command changes the ic value */
+void update_ic(char *line, int i, const char *commands[], int com_len, assembler_table *table)
+{
+    int len = check_word(line, i, commands, com_len);
+
+    if (len != -1)
+    {
+        char command_name[MAX_LINE_LENGTH];
+        int ic;
+
+        strncpy(command_name, &line[i], len);
+        command_name[len] = '\0';
+
+        /* Checks the amount of arguments needed for the command*/
+        ic = get_instruction(command_name);
+        table->instruction_counter += ic;
+    };
+
+    
+}
+
 /* Checks if line has a label, data section or a command.*/
 void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
@@ -688,10 +716,14 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
     };
 
+    int com_len = sizeof(commands) / sizeof(commands[0]);
+
     const char *directives[] = 
     {
         ".data", ".string", ".mat", ".entry", ".extern"
     };
+
+    int dir_len = sizeof(directives) / sizeof(directives[0]);
 
     char str[MAX_LINE_LENGTH];
     int i = 0;
@@ -700,8 +732,42 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
     i = delete_white_spaces(line, i);
 
-    /* Checks if there's a directive */
-    if (strchr(line, ':') == NULL && strchr(line, '.') != NULL)
+    /* The line doesn't have a label */
+    if (!strchr(line, ':')) 
+    {
+        /* Checks if there's a command */
+        int len = check_word(line, i, commands, com_len);
+
+        if (len != -1)
+        {
+            update_ic(line, i, commands, com_len, table);
+        }
+        else
+        {
+            /* Checks if there's a directive */
+            len = check_word(line, i, directives, dir_len);
+
+            if (len != -1)
+            {
+                /* Gets the directive */
+                char directive[MAX_LINE_LENGTH];
+                strncpy(directive, line, len);
+                directive[len] = '\0'; 
+
+                /* Handles the directive */
+                add_directive(table, line, error_count, directive);
+            }
+            else
+            {
+                printf("Nothing to do in line: %s\n", line);
+                return;
+            }
+        }
+    }
+
+
+    /* The line has a label */
+    else if (strchr(line, ':') == NULL && strchr(line, '.') != NULL)
     {
         if (line[i] == '.')
         {
@@ -747,10 +813,26 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         if (strchr(line, ':') != NULL)
         {
             if (is_label_ok(line) == 1)
-            {
+            {  
+
                 /* Adds the label to the table */
-                add_label(table, line, i, error_count, commands, directives, sizeof(commands) / sizeof(commands[0]) ,
+                add_label(table, line, i, error_count, commands, directives, com_len ,
                           sizeof(directives) / sizeof(directives[0]));
+
+                i = delete_white_spaces(line, i);
+
+                while (line[i] != ':')
+                {
+                    i++;
+                }
+
+                if (line[i] == ':')
+                {
+                    i++;
+                }                
+                
+                /* Updates the ic */
+                update_ic(line, i, commands, com_len, table);
 
                 /* Checks if there's a directive after the label */
                 if (strchr(line, '.') != NULL)
@@ -793,7 +875,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             }
             
             /* Checks if the command exists, Returns error if no. */
-            for (j = 0; j < sizeof(commands) / sizeof(commands[0]); j++) 
+            for (j = 0; j < com_len; j++) 
             {
                 if (strcmp(str, commands[j]) == 0) 
                 {
