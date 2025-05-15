@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/home/michelle/projects/AsemblerProject/assembler",
-            "args": ["test"],
+            "args": ["valid_input"],
             "stopAtEntry": false,
             "cwd": "/home/michelle/projects/AsemblerProject/",
             "environment": [],

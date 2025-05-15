@@ -40,10 +40,12 @@ int first_pass(const char *file, assembler_table *table)
     fclose(am);
     free(full_file);
 
+    print_assembler_table(table); /* ########debugging#####33 */
+
     /* Checks if there were any errors. Returns error if yes. */
     if (error_count != 0)
     {
-        printf("Please fix the previous %d errors, and start over!", error_count);
+        printf("Please fix the previous %d errors, and start over!\n", error_count);
         return(0);
     }
     
