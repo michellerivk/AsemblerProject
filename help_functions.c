@@ -688,6 +688,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             }
             else
             {
+                /*###############3 JUST FOR ME ############### */
                 printf("FOR DEBUGGING: The name of the dericetive is: %s\n", str);
 
                 add_directive(table, line, error_count, str);
