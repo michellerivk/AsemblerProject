@@ -292,12 +292,13 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         
             /* Fills the table */
             mat_node->word.value = atoi(arg);
-            mat_node->address = table->data_counter++;
+            mat_node->address = table->data_counter;
             mat_node->next = NULL;
 
             /* Add the directive to the table */
             add_data_node(table, mat_node);
         
+            table->data_counter++;
             count++; /* Adds an argument to the counter */
 
             arg = strtok(NULL, ",");
@@ -460,6 +461,8 @@ void add_label(assembler_table *table, char *line, int i, int *error_count,
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
+
+    /* Checks if memory allocation failed */
     if (!new_label) 
     {
         printf("ERROR: Memory allocation failed\n");
@@ -474,16 +477,27 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
         return; 
     }
 
+    /* Inserts the name of the label into the table */
     strcpy(new_label->name, lbl);
 
-    /* Checks what counter to assign to the address */
-    if (type == DATA)
+    /* Adds 100 to the IC on the first incounter */
+    if (type == CODE && table->instruction_counter == 0)
     {
-        new_label->address = table->data_counter;
-    }
-    else
-    {
+        table->instruction_counter += 100;
         new_label->address = table->instruction_counter;
+    }
+    
+    else 
+    {
+        /* Checks what counter to assign to the address */
+        if (type == DATA)
+        {
+            new_label->address = table->data_counter + table->instruction_counter + 1;
+        }
+        if (type == CODE)
+        {
+            new_label->address = table->instruction_counter + 1;
+        }
     }
 
     new_label->type = type;
@@ -549,7 +563,6 @@ int is_reserved_word(const char *label) {
     return false;
 }
 
-
 /* Checks if the name of the label is good. */
 int is_label_ok(char *label)
 {
@@ -609,40 +622,45 @@ int is_label_ok(char *label)
     return true;
 }
 
-
 /* Checks if the name of the label is good. */
-
- /*************************CHECK IT************************************* */
 char *get_label(char *line, int i)
 {
-    int start = delete_white_spaces(line, i);
     int len = 0;
     char *label;
 
-    /* measure up to the colon or end of buffer */
-    while (line[start + len] != ':' &&
-           line[start + len] != '\0' &&
-           len < MAX_LABEL_LENGTH - 1) {
+    i = delete_white_spaces(line, i); /* Skips white-spaces */
+
+    /* Goes to the end of label or to the end of the line */
+    while (line[i + len] != ':' && line[i + len] != '\0' && len < MAX_LABEL_LENGTH - 1) 
+    {
         len++;
     }
 
-    if (line[start + len] != ':') {
-        /* no colon found */
+    /* Checks if there are ':'. If no there's no label, and returns NULL */
+    if (line[i + len] != ':') 
+    {
         return NULL;
     }
 
-    /* allocate and copy */
     label = (char *)malloc(len + 1);
-    if (!label) {
+
+    /* Returns an error if memory allocation fails */
+    if (!label) 
+    {
         fprintf(stderr, "ERROR: Out of memory in get_label()\n");
         exit(1);
     }
-    memcpy(label, &line[start], len);
+
+    /* Copies the label name into 'label' */
+    memcpy(label, &line[i], len);
+
+    /* Ends the label */
     label[len] = '\0';
+
+
     return label;
 
 }
-
 
 /* a function to check how many lines there are in the file */
 int count_lines_in_file(const char *filename) 
@@ -674,17 +692,17 @@ int get_instruction(char *com)
 {
     if (strcmp(com, "stop") == 0 || strcmp(com, "rts") == 0)
     {
-        return 1;
+        return 0;
     }
     else if (strcmp(com, "jmp") == 0 || strcmp(com, "bne") == 0 || strcmp(com, "jsr") == 0 || strcmp(com, "prn") == 0 ||
              strcmp(com, "not") == 0 || strcmp(com, "clr") == 0 || strcmp(com, "inc") == 0 || strcmp(com, "dec") == 0 ||
              strcmp(com, "red") == 0)
     {
-        return 2;
+        return 1;
     }
     else
     {
-        return 3;
+        return 2;
     }
 }
 
@@ -696,14 +714,15 @@ void update_ic(char *line, int i, const char *commands[], int com_len, assembler
     if (len != -1)
     {
         char command_name[MAX_LINE_LENGTH];
-        int ic;
+        int L; /* The number of operends */
 
         strncpy(command_name, &line[i], len);
         command_name[len] = '\0';
 
         /* Checks the amount of arguments needed for the command*/
-        ic = get_instruction(command_name);
-        table->instruction_counter += ic;
+        L = get_instruction(command_name);
+
+        table->instruction_counter += 1 + L; /* Updates the IC to IC + L */
     };
 
     
@@ -712,6 +731,7 @@ void update_ic(char *line, int i, const char *commands[], int com_len, assembler
 /* Checks if line has a label, data section or a command.*/
 void check_line(char *line, int line_number, assembler_table *table, int *error_count)
 {
+    /* All possible commands */
     const char *commands[] = 
     {
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
@@ -719,6 +739,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
     int com_len = sizeof(commands) / sizeof(commands[0]); /* The total size of the commands array */
 
+    /* All possible directives */
     const char *directives[] = 
     {
         ".data", ".string", ".mat", ".entry", ".extern"
@@ -766,10 +787,10 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         }
     }
 
-
     /* The line has a label */
     else
     {
+        /* Cheks if label is ok */
         if (is_label_ok(line))
         {
             int len;
@@ -804,16 +825,10 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
             /* Checks if there's a command after the label */
             len = check_word(line, i, commands, com_len);
+
             if (len != -1)
             {
-                /* Gets the name of the command */
-                char command_name[MAX_LINE_LENGTH];
-                strncpy(command_name, &line[i], len);
-                command_name[len] = '\0';
-
-                /* Adds the number of arguments to the IC */
-                table->instruction_counter += get_instruction(command_name);;
-
+                update_ic(line, i, commands, com_len, table); /* Updates the IC */
                 return;
             }
 
@@ -822,9 +837,11 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             (*error_count)++;
             return;
         }
+
+        /* Sends an error if the label is not ok */
         else
         {
-            printf("ERROR: The label: %s wasn't entered correctly\n", line);
+            printf("ERROR: No label was found in the line: %s\n", line);
             (*error_count)++;
             return;
         }
