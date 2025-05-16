@@ -10,6 +10,7 @@ int first_pass(const char *file, assembler_table *table)
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
+    int icf, dfc;
 
     /* 0-ing the table */
     table->instruction_counter = 0;
@@ -36,13 +37,16 @@ int first_pass(const char *file, assembler_table *table)
         check_line(line, line_number ,table, &error_count);
     }
 
+    icf = table->instruction_counter;
+    dfc = table->data_counter;
+
     /* Closes files and frees memory */
     fclose(am);
     free(full_file);
 
     print_assembler_table(table); /* ########debugging#####33 */
 
-    /* Checks if there were any errors. Returns error if yes. */
+    /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
     {
         printf("Please fix the previous %d errors, and start over!\n", error_count);
