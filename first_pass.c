@@ -2,7 +2,28 @@
 #include <stdlib.h>
 #include "first_pass_functions.h"
 
-/* Runs the first pass */
+/**
+ * Executes the first pass over the processed assembly source file (file_name.am).
+ *
+ * This function processes the `.am` file line by line.
+ * It builds the assembler table by recording label names, their memory addresses,
+ * and the type of input they have, while also announcing errors.
+ *
+ * Key responsibilities:
+ * - Find the register labels and their addresses.
+ * - Store data and update the Data Counter.
+ * - Update the Instruction Counter.
+ *
+ * Errors during this pass will be counted 
+ * But will not stop the program immediately, 
+ * only after the passed has finished scanning the file.
+ *
+ * @param file  The name of the `.am` file to read.
+ * @param table The assembler_table structure.
+ *
+ * @return 1 if the pass completed successfully without errors, and a 0 if there were any errors.
+ */
+
 int first_pass(const char *file, assembler_table *table) 
 {
     int error_count = 0; /* Counts the amount of errors */

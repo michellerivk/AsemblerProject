@@ -4,7 +4,18 @@
 #include <ctype.h>
 #include "first_pass_functions.h"
 
-/* Checks if the given word exists in the given list of words */
+/**
+ * Checks if the command or directive exists in the given list of words.
+ *
+ * @param line         The line to check.
+ * @param start        The index in the line where the word begins.
+ * @param words        Array of valid directives / commands.
+ * @param amount       Number of words in the list.
+ * @param error_count  The number of errors found so far.
+ * @param label_flag   A flag to indicate if the line includes a label before the word.
+ *
+ * @return The length of the word found (if it's valid), or -1 otherwise.
+ */
 int check_word(char *line, int start, const char *words[], int amount, int *error_count, bool label_flag) 
 {
     int i;
@@ -32,7 +43,12 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
     return -1;
 }
 
-/* Adds a data node to a list */
+/**
+ * Adds a new data node to the data list in the assembler table.
+ *
+ * @param table     The assembler's table structure.
+ * @param new_node  The data node to add to the list.
+ */
 void add_data_node(assembler_table *table, data *new_node)
 {
     /* Adds the first node if there were none before */
@@ -53,7 +69,12 @@ void add_data_node(assembler_table *table, data *new_node)
     }
 }
 
-/* Adds a label node to a list */
+/**
+ * Adds a new label node to the label list in the assembler table.
+ *
+ * @param table     The assembler's table structure.
+ * @param new_node  The label node to add to the list.
+ */
 void add_label_node(assembler_table *table, label *new_node)
 {
     /* Adds the first node if there were none before */
@@ -74,7 +95,14 @@ void add_label_node(assembler_table *table, label *new_node)
     }
 }
 
-/* Imports the necessary data for the table, and adds it to the table */
+/**
+ * Parses a directive line, and updates the assembler table.
+ *
+ * @param table        The assembler's table structure.
+ * @param line         The line being parsed.
+ * @param error_count  The number of errors found so far.
+ * @param directive    The directive word being processed.
+ */
 void add_directive(assembler_table *table, char *line, int *error_count, char *directive)
 {
     if (strcmp(directive, ".data") == 0)
@@ -326,7 +354,13 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     }    
 }
 
-/* Checks if the given input is a number */
+/**
+ * Checks if the given string is a valid number.
+ *
+ * @param input  The input to validate.
+ *
+ * @return 1 if the input is a valid number, 0 otherwise.
+ */
 int is_number_ok(char *input)
 {
     int i = 0;
@@ -356,9 +390,25 @@ int is_number_ok(char *input)
     return true;
 }
 
-/* Imports the necessary data for the table, and calls add_label_to_table function */
+/**
+ * Gets the label from the line and adds it to the assembler's table,
+ * deciding if it's followed by a directive or a command.
+ *
+ * @param table           The assembler's table structure.
+ * @param line            The line with the label.
+ * @param i               The starting index of the line.
+ * @param error_count     The number of errors found so far.
+ * @param commands        Array of valid commands.
+ * @param directives      Array of valid directives.
+ * @param commands_len    Number of commands in array.
+ * @param directives_len  Number of directives in array.
+ * @param label_flag      Boolean variable used to check if this line starts with a label.
+ *
+ * @return true (1) if label was added successfully, false (0) otherwise.
+ */
 int add_label(assembler_table *table, char *line, int i, int *error_count, 
-               const char *commands[], const char *directives[], int commands_len, int directives_len, bool label_flag)
+              const char *commands[], const char *directives[], int commands_len, 
+              int directives_len, bool label_flag)
 {
     int len;
     char *lbl = get_label(line, i); /* Gets the label name out of the line */
@@ -428,7 +478,14 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
 
 }
 
-/* Adds label to the table */
+/**
+ * Adds a new label with address and type to the assembler table.
+ *
+ * @param table        The assembler's table structure.
+ * @param lbl          The label name.
+ * @param type         The label type.
+ * @param error_count  The number of errors found so far.
+ */
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
@@ -478,7 +535,14 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     add_label_node(table, new_label);
 }
 
-/* Checks if label exists already. Returns an true if yes, false otherwise */
+/**
+ * Checks if the given label already exists in the label list.
+ *
+ * @param list   The head of the label list.
+ * @param label  The label name to check.
+ *
+ * @return true (1) if the label exists, false (0) otherwise.
+ */
 int check_for_label(label *list, char *label)
 {
     while (list != NULL) 
@@ -494,7 +558,13 @@ int check_for_label(label *list, char *label)
     return false;
 }
 
-/* Checks if the command name is ok */
+/**
+ * Checks if the given word is a valid command.
+ *
+ * @param word  The word to check.
+ *
+ * @return true (1) if it's a known command, false (0) otherwise.
+ */
 int is_command_ok(char *word)
 {
     char *commands[] = 
@@ -515,8 +585,15 @@ int is_command_ok(char *word)
     return false;
 }
 
-/* Checks if the label is a reserved word. Returns true if yes. */
-int is_reserved_word(const char *label) {
+/**
+ * Checks if a label is a reserved word in the language (command, directive, etc.).
+ *
+ * @param label  The label name to check.
+ *
+ * @return true (1) if it's reserved, false (0) otherwise.
+ */
+int is_reserved_word(const char *label) 
+{
     char *reserved[] = {
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
         ".data", ".string", ".mat", ".entry", ".extern", "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"
@@ -534,7 +611,13 @@ int is_reserved_word(const char *label) {
     return false;
 }
 
-/* Checks if the name of the label is good. */
+/**
+ * Validates the name of a label.
+ *
+ * @param label  The label check.
+ *
+ * @return true (1) if the label is legal, false (0) otherwise.
+ */
 int is_label_ok(char *label)
 {
     char label_name[MAX_LABEL_LENGTH];
@@ -591,7 +674,14 @@ int is_label_ok(char *label)
     return true;
 }
 
-/* Checks if the name of the label is good. */
+/**
+ * Extracts the label name from a line.
+ *
+ * @param line  TThe line to check.
+ * @param i     The starting index of the line.
+ *
+ * @return The label name, or NULL if not found.
+ */
 char *get_label(char *line, int i)
 {
     int len = 0;
@@ -629,32 +719,13 @@ char *get_label(char *line, int i)
 
 }
 
-/* a function to check how many lines there are in the file */
-int count_lines_in_file(const char *filename) 
-{
-    FILE *fp = fopen(filename, "r");
-    int count = 0;
-    char c;
-
-    if (!fp) 
-    {
-        printf("Error: Could not open file %s\n", filename);
-        return -1;
-    }
-
-    while ((c = fgetc(fp)) != EOF) 
-    {
-        if (c == '\n') 
-        {
-            count++;
-        }
-    }
-
-    fclose(fp);
-    return count;
-}
-
-/* Returns the amount of needed arguments for each command */
+/**
+ * Returns the number of operands required by the given command.
+ *
+ * @param com  The command name.
+ *
+ * @return 0, 1, or 2 decided by the command.
+ */
 int get_instruction(char *com) 
 {
     if (strcmp(com, "stop") == 0 || strcmp(com, "rts") == 0)
@@ -673,8 +744,19 @@ int get_instruction(char *com)
     }
 }
 
-/* The command changes the ic value */
-void update_ic(char *line, int i, const char *commands[], int com_len, assembler_table *table, int *error_count, bool label_flag)
+/**
+ * Updates the instruction counter based on the number of operands in a command.
+ *
+ * @param line         The line to check.
+ * @param i            The index after the label.
+ * @param commands     List of command names.
+ * @param com_len      Number of the commands.
+ * @param table        The assembler's table structure.
+ * @param error_count  The number of errors found so far.
+ * @param label_flag   Boolean variable used to check if this line starts with a label.
+ */
+void update_ic(char *line, int i, const char *commands[], int com_len, 
+               assembler_table *table, int *error_count, bool label_flag)
 {
     int len = check_word(line, i, commands, com_len, error_count, label_flag);
 
@@ -695,7 +777,17 @@ void update_ic(char *line, int i, const char *commands[], int com_len, assembler
     
 }
 
-/* Checks if line has a label, data section or a command.*/
+/**
+ * Validates the given line from the '.am' file.
+ *
+ * Updates the assembler table and IC/DC if needed.
+ *
+ * @param line         The line to check.
+ * @param line_number  The number of the line in the source file.
+ * @param table        The assembler's table structure.
+ * @param error_count  The number of errors found so far.
+ * @param label_flag   Boolean variable used to check if this line starts with a label.
+ */
 void check_line(char *line, int line_number, assembler_table *table, int *error_count, bool label_flag)
 {
     /* All possible commands */
