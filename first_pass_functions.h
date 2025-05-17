@@ -181,7 +181,7 @@ void update_ic(char *line, int i, const char *commands[], int com_len,
  * @param command_name    The name of the command.
  * @param label_flag      Boolean variable used to check if this line starts with a label.
  *
- * @return true if the command is valid, false otherwise.
+ * @return true (1) if the command is valid, false (0) otherwise.
  */
 bool check_command(char *line, int i, int *error_count, int operands_amount, char *command, bool label_flag);
 
@@ -195,7 +195,7 @@ bool check_command(char *line, int i, int *error_count, int operands_amount, cha
  * @param i           The starting index of operands in the line.
  * @param error_count The number of errors found so far.
  *
- * @return true if the command line is valid, false otherwise.
+ * @return true (1) if the command line is valid, false (0) otherwise.
  */
 bool check_zero_operands(char *line, int i, int *error_count);
 
@@ -211,7 +211,7 @@ bool check_zero_operands(char *line, int i, int *error_count);
  * @param name        The name of the command.
  * @param operand     The operand to validate.
  *
- * @return true if the operand is valid for the given command, false otherwise.
+ * @return true (1) if the operand is valid for the given command, false (0) otherwise.
  */
 bool check_one_operands(char *line, int i, int *error_count, char *name, char *operand);
 
@@ -226,7 +226,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
  * @param error_count The number of errors found so far.
  * @param name        The name of the command.
  *
- * @return true if both operands are valid, false otherwise.
+ * @return true (1) if both operands are valid, false (0) otherwise.
  */
 bool check_two_operands(char *line, int i, int *error_count, char *name);
 
@@ -237,7 +237,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name);
  *
  * @param operand The operand to check.
  *
- * @return true if the operand is a valid matrix, false otherwise.
+ * @return true (1) if the operand is a valid matrix, false (0) otherwise.
  */
 bool is_matrix(char *operand);
 
@@ -248,7 +248,7 @@ bool is_matrix(char *operand);
  *
  * @param operand The operand to check.
  *
- * @return true if the operand is a valid immediate, false otherwise.
+ * @return true if the operand is a valid immediate, false (0) otherwise.
  */
 bool is_immediate(char *operand);
 
@@ -257,7 +257,7 @@ bool is_immediate(char *operand);
  *
  * @param operand The operand to check.
  *
- * @return true if the operand is a register, false otherwise.
+ * @return true (1) if the operand is a register, false (0) otherwise.
  */
 bool is_register(char *operand);
 
@@ -268,6 +268,6 @@ bool is_register(char *operand);
  *
  * @param operand The operand string to check.
  *
- * @return true if the operand is a valid label, false otherwise.
+ * @return true (1) if the operand is a valid label, false (0) otherwise.
  */
 bool is_label(char *operand);
