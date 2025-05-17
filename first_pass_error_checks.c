@@ -2,7 +2,19 @@
 #include <string.h>
 
 
-
+/**
+ * Checks if the operations in the given command in the line are correct,
+ * according to the operation type.
+ *
+ * @param line            The line to check.
+ * @param i               The starting index of the line.
+ * @param error_count     The number of errors found so far.
+ * @param operands_amount The number of operands for the current command.
+ * @param command_name    The name of the command.
+ * @param label_flag      Boolean variable used to check if this line starts with a label.
+ *
+ * @return true if the command is valid, false otherwise.
+ */
 bool check_command(char *line, int i, int *error_count, int operands_amount, char *command_name, bool label_flag)
 {
     char operand[MAX_LINE_LENGTH];
@@ -50,6 +62,16 @@ bool check_command(char *line, int i, int *error_count, int operands_amount, cha
     }
 }
 
+/**
+ * Checks if a command that requires zero operands has an extra argument.
+ * If any argument is found after the command, it reports an error and add 1 to the error count.
+ *
+ * @param line        The line to check.
+ * @param i           The starting index of operands in the line.
+ * @param error_count The number of errors found so far.
+ *
+ * @return true if the command line is valid, false otherwise.
+ */
 bool check_zero_operands(char *line, int i, int *error_count) 
 {    
     if (line[i] != '\0' && line[i] != '\n') 
@@ -61,6 +83,19 @@ bool check_zero_operands(char *line, int i, int *error_count)
 
     return true;
 }
+
+/**
+ * Checks if the line contains only one valid operand.
+ * It verifies that the operand type matches the rules for the specific command.
+ *
+ * @param line        The full line of the assembly code.
+ * @param i           The starting index of the operands in the line.
+ * @param error_count The number of errors found so far.
+ * @param name        The name of the command.
+ * @param operand     The operand to validate.
+ *
+ * @return true if the operand is valid for the given command, false otherwise.
+ */
 
 bool check_one_operands(char *line, int i, int *error_count, char *name, char *operand) 
 {
@@ -123,6 +158,18 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
 
     return ok;
 }
+
+/**
+ * Checks if the line contains only two operands, separated by a comma,
+ * and validates them according to the command.
+ *
+ * @param line        The line to check.
+ * @param i           The starting index of the operands in the line.
+ * @param error_count The number of errors found so far.
+ * @param name        The name of the command.
+ *
+ * @return true if both operands are valid, false otherwise.
+ */
 
 bool check_two_operands(char *line, int i, int *error_count, char *name) 
 {
@@ -212,21 +259,43 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     return src_ok && dest_ok;
 }
 
-/* Checks if the register is ok */
+/**
+ * Checks if the given operand is a valid register. (r1 -r7)
+ *
+ * @param operand The operand to check.
+ *
+ * @return true if the operand is a register, false otherwise.
+ */
 bool is_register(char *operand) 
 {
     return (strlen(operand) == 2 && operand[0] == 'r' &&
             operand[1] >= '0' && operand[1] <= '7');
 }
 
-/* Checks if the immediate is ok */
+/**
+ * Checks if the given operand is a valid immediate.
+ *
+ * The immediate must begin with '#' followed by a number. (Could be with a '-')
+ *
+ * @param operand The operand to check.
+ *
+ * @return true if the operand is a valid immediate, false otherwise.
+ */
 bool is_immediate(char *operand) 
 {
     return (operand[0] == '#' && isdigit(operand[1])) || 
         (operand[0] == '#' && operand[1] == '-' && isdigit(operand[2]));
 }
 
-/* Checks if the matrix is ok */
+/**
+ * Checks if the given operand is a valid matrix.
+ *
+ * A valid matrix operand has the form: LABEL[register1][register2]
+ *
+ * @param operand The operand to check.
+ *
+ * @return true if the operand is a valid matrix, false otherwise.
+ */
 bool is_matrix(char *operand)
 {
     char *first_open, *first_close, *second_open, *second_close;
@@ -260,6 +329,15 @@ bool is_matrix(char *operand)
     return false;
 }
 
+/**
+ * Checks if the given operand is a valid label.
+ *
+ * A valid label must start with a letter, followed by letters or digits ONLY.
+ *
+ * @param operand The operand string to check.
+ *
+ * @return true if the operand is a valid label, false otherwise.
+ */
 bool is_label(char *operand)
 {
     int i;
