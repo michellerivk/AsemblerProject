@@ -1,6 +1,10 @@
+#ifndef ASSEMBLER_H
+#define ASSEMBLER_H
+
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 81
 #define MAX_LABEL_LENGTH 31
@@ -19,6 +23,24 @@
 #define STRING 2
 #define MATRIX 3
 #define EXTERNAL 4
+
+/* Create enum for boolean expressions */
+typedef enum { false, true } bool;
+
+
+typedef enum ERRORS{
+    FILE_NAME_EXCEED_MAXIMUM,
+    ERROR_RESERVED_WORD,
+    ERROR_INVALID_MACRO_NAME,
+    ERROR_TEXT_AFTER_MACROEND,
+    EXCEED_MAXIMUM_MACRO_LENGTH,
+    MISSING_MACRO_NAME,
+    MACRO_ALREADY_DEFINED,
+    FAILED_TO_OPEN_FILE,
+    FAILED_TO_REMOVE_FILE,
+    MALLOC_FAILED
+}ERRORS;
+
 
 typedef struct macro_content{
     char content_line[MAX_LINE_LENGTH];
@@ -77,6 +99,7 @@ typedef struct assembler_table {
     char assembly_file[MAX_LABEL_LENGTH];
     int instruction_counter;
     int data_counter;
+
 } assembler_table;
 
 
@@ -87,10 +110,14 @@ void remove_white_spaces(char dest[MAX_LINE_LENGTH] , char * line);
 void * generic_malloc(long size);
 FILE * safe_fopen(char * name , char * mode);
 void add_suffix(char *dest, const char *file_name, const char *ending);
-int pre_proc(assembler_table ** assembler_table);
+bool pre_proc(assembler_table ** assembler);
 void files_initialize(assembler_table **assembler, FILE **fp_as, FILE **fp_am, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH]);
 unsigned short move_bits(unsigned short word , unsigned short move);
-int second_pass(assembler_table ** assembler_table);
+
+bool complement_label_word(assembler_table ** assembler,  command * ptr_cmd);
+bool complement_ext_word(assembler_table ** assembler,  command * ptr_cmd);
+bool second_pass(assembler_table ** assembler);
+bool labels_check(assembler_table **assembler);
 assembler_table * initialize_assembler_table(char * argv);
 void add_to_content_list(macro_content ** head ,char * content );
 void add_to_macro_list(macro ** head , char * macro_name , macro_content * content);
@@ -104,22 +131,54 @@ void ext_file(assembler_table * assembler);
 void ent_file(assembler_table * assembler);
 
 void files_treatment(assembler_table * assembler);
-void macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH], FILE *fp_as, macro_content **content);
+bool macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH], FILE *fp_as, macro_content **content , int * line_couner);
+bool macro_name_examine(char macro_name[] , int line_counter , macro * macro_list);
+bool examine_macroend(char line[] , int line_counter);
+void errors_table(ERRORS error_code, int line_counter);
+void safe_remove(const char *filename);
+
 
 
 int first_pass(const char *file, assembler_table *table);
 
 
-/**
-  המעבר השני
-  להשלים את המילה של התוויות בתוך הרשימה של הCOMMAND
-  להשלים את המילה של כתובת מטריצה ברשימה של הCOMMAND
-  להשלים את המילים של EXTERN בתוך הרשימה של ה COMMAND
-  להשלים הופעות של EXTERN השימוש בתור אופרנד באיזה כתובת בתוך רשימה של EXTERN
+
+
+/*=========Michelle header: ==================*/
+
+
+
+/* Call helping functions so that the main function can use them*/
+/*
+int first_pass(const char *am_file);
+int macro(const char *as_file);
+char *add_ending(const char *file_name, const char *ending);
 */
 
+/**
+ * The function removes all the white spaces at the start of the string.
+ *
+ * @param input The given string.
+ * @param i The start of the string.
+ */
+int delete_white_spaces(char input[], int i);
+
+void check_line(char *line, int line_number, assembler_table *table, int *error_count, bool label_flag);
+
+char *get_label(char *line, int i);
+
+int is_command_ok(char *word);
+
+void add_label_to_table();
+
+int check_for_label(label *list, char *label);
+
+int is_number_ok(char *input);
+
+int get_instruction(char *com);
+int is_reserved_word(const char *label);
 
 
-
+#endif /* ASSEMBLER_H */
 
 
