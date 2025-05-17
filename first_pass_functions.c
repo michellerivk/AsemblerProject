@@ -221,7 +221,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         /* Checks if the input of the matrix is ok */
         if (sscanf(input, "[%d][%d]", &rows, &cols) != 2) 
         {
-            printf("ERROR: The matrix was entered wrongly\n");
+            printf("ERROR: The matrix was entered wrongly on line: %s\n", line);
             (*error_count)++;
             return;
         }
@@ -408,7 +408,6 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
         if (len != -1)
         {
             type = CODE;
-            return true;
         }
     }
 

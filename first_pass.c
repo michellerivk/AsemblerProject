@@ -51,9 +51,11 @@ int first_pass(const char *file, assembler_table *table)
         return(0);
     }
 
-    /*print_assembler_table(table);*/
-    
     printf("The were no errors.\n");
+
+
+    print_assembler_table(table);
+    
 
     /* If there were no errors returns 1. */
     return 1;

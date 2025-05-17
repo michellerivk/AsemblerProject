@@ -44,7 +44,7 @@ bool check_command(char *line, int i, int *error_count, int operands_amount, cha
         case 2:
             return check_two_operands(line, i, error_count, command_name);
         default:
-            printf("ERROR: Invalid Operator in line:%s\n", line);
+            printf("ERROR: Invalid Operator in line: %s\n", line);
             (*error_count)++;
             return false;
     }
@@ -54,7 +54,7 @@ bool check_zero_operands(char *line, int i, int *error_count)
 {    
     if (line[i] != '\0' && line[i] != '\n') 
     {
-        printf("ERROR: Command should not have operands.\n");
+        printf("ERROR: Command should not have operands in line: %s\n", line);
         (*error_count)++;
         return false;
     }
@@ -70,7 +70,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     /* Checks if there are enough operands */
     if (line[i] == '\0' || line[i] == '\n') 
     {
-        printf("ERROR: Command is missing its operand in line:%s\n", line);
+        printf("ERROR: Command is missing its operand in line: %s\n", line);
         (*error_count)++;
         return ok;
     }
@@ -86,7 +86,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     /* Checks if there are too many operands */
     if (comma_count != 0) 
     {
-        printf("ERROR: Command has too many operands in line:%s\n", line);
+        printf("ERROR: Command has too many operands in line: %s\n", line);
         (*error_count)++;
         return ok;
     }
@@ -116,7 +116,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
 
     if (!ok)
     {
-        printf("ERROR: Invalid operand in line:%s\n", line);
+        printf("ERROR: Invalid operand in line: %s\n", line);
         (*error_count)++;
     }
     
@@ -157,7 +157,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     /* Sends an error if yes */
     if (count != 2) 
     {
-        printf("ERROR: Command should have two operands in line:%s\n", line);
+        printf("ERROR: Command should have two operands in line: %s\n", line);
         (*error_count)++;
         return false;
     }
@@ -176,7 +176,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     }
     if (strcmp(name, "sub") == 0 || strcmp(name, "mov") == 0 || strcmp(name, "add") == 0)
     {
-        if (is_register(src) || is_immediate(src) || is_label(src)) 
+        if (is_register(src) || is_immediate(src) || is_label(src) || is_matrix(src)) 
         {
             src_ok = true;
         }
@@ -200,12 +200,12 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     }
 
     if (!src_ok) {
-        printf("ERROR: Invalid source operand in line:%s\n", line);
+        printf("ERROR: Invalid source operand in line: %s\n", line);
         (*error_count)++;
     }
 
     if (!dest_ok) {
-        printf("ERROR: Invalid destination operand in line:%s\n", line);
+        printf("ERROR: Invalid destination operand in line: %s\n", line);
         (*error_count)++;
     }
 
@@ -229,37 +229,35 @@ bool is_immediate(char *operand)
 /* Checks if the matrix is ok */
 bool is_matrix(char *operand)
 {
-    char *bracket1, *bracket2, *bracket3, *bracket4;
-    char reg1[5], reg2[5];
-    int len1, len2;
+    char *first_open, *first_close, *second_open, *second_close;
+    char index1[MAX_LINE_LENGTH], index2[MAX_LINE_LENGTH];
 
+    first_open = strchr(operand, '[');
+    if (!first_open) return false;
 
-    bracket1 = strchr(operand, '[');
-    if (!bracket1) return false;
+    first_close = strchr(first_open, ']');
+    if (!first_close) return false;
 
-    bracket2 = strchr(bracket1 + 1, ']');
-    if (!bracket2 || bracket2 <= bracket1 + 1) return false;
+    second_open = strchr(first_close + 1, '[');
+    if (!second_open) return false;
 
-    bracket3 = strchr(bracket2 + 1, '[');
-    if (!bracket3) return false;
+    second_close = strchr(second_open, ']');
+    if (!second_close) return false;
 
-    bracket4 = strchr(bracket3 + 1, ']');
-    if (!bracket4 || bracket4 <= bracket3 + 1) return false;
+    /* Copy the content inside the first brackets */
+    strncpy(index1, first_open + 1, first_close - first_open - 1);
+    index1[first_close - first_open - 1] = '\0';
 
-    if (*(bracket4 + 1) != '\0') return false;
+    /* Copy the content inside the second brackets */
+    strncpy(index2, second_open + 1, second_close - second_open - 1);
+    index2[second_close - second_open - 1] = '\0';
 
-    len1 = bracket2 - bracket1 - 1;
-    len2 = bracket4 - bracket3 - 1;
+    /* Check if both are valid registers */
+    if (is_register(index1) && is_register(index2)) {
+        return true;
+    }
 
-    if (len1 >= sizeof(reg1) || len2 >= sizeof(reg2)) return false;
-
-    strncpy(reg1, bracket1 + 1, len1);
-    reg1[len1] = '\0';
-
-    strncpy(reg2, bracket3 + 1, len2);
-    reg2[len2] = '\0';
-
-    return is_register(reg1) && is_register(reg2);
+    return false;
 }
 
 bool is_label(char *operand)
