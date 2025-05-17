@@ -9,7 +9,7 @@ void * generic_malloc(long size){
     void * ptr = malloc(size);
     /*Check if memory allocation failed*/
     if(ptr == NULL){ 
-
+        errors_table(MALLOC_FAILED , -1);
         exit(1);/* Exit the program if memory allocation fails */
     }    
     return ptr; /* Return void pointer to allocated memory */
@@ -18,7 +18,7 @@ void * generic_malloc(long size){
 FILE * safe_fopen(char * name , char * mode){
     FILE *fp = fopen(name, mode);
     if(fp == NULL){
-    
+        errors_table(FAILED_TO_OPEN_FILE , -1);
         exit(1);
     }
     return fp;
@@ -52,6 +52,56 @@ macro * find_macro(macro * head , char * name){
     return NULL;
 }
 
+
+void errors_table(ERRORS error_code, int line_counter) {
+    switch (error_code) {
+        case FILE_NAME_EXCEED_MAXIMUM:
+            printf("Error: File name exceed the maximum length.\n");
+            break;
+        case ERROR_RESERVED_WORD:
+            printf("Error on line %d: The name used is a reserved word and cannot be used.\n", line_counter);
+            break;
+        case ERROR_INVALID_MACRO_NAME:
+            printf("Error on line %d: Invalid macro name.\n", line_counter);
+            break;
+        case ERROR_TEXT_AFTER_MACROEND:
+            printf("Error on line %d: Unexpected text after 'macroend'.\n", line_counter);
+            break;
+        case MISSING_MACRO_NAME:
+            printf("Error on line %d: Missing macro name.\n", line_counter);
+            break;
+        case EXCEED_MAXIMUM_MACRO_LENGTH:
+            printf("Error on line %d: Macro name exceed maximum length.\n", line_counter);
+            break;    
+        case MACRO_ALREADY_DEFINED:
+            printf("Error on line %d: Macro name already defined.\n", line_counter);
+            break;   
+        case FAILED_TO_REMOVE_FILE:
+            printf("Failed to remove file.\n");
+            break;     
+        case FAILED_TO_OPEN_FILE:    
+            printf("Failed to open file.\n");
+            break;
+        case MALLOC_FAILED:
+            printf("Malloc fail.\n");
+            break;
+        default:
+            printf("Error on line %d: Unknown error code.\n", line_counter);
+            break;
+    }
+}
+
+/* Safe remove function */
+void safe_remove(const char *filename) {
+    if (filename == NULL || strlen(filename) == 0) {
+        return; 
+    }
+
+    if (remove(filename) != 0) {
+        errors_table(FAILED_TO_REMOVE_FILE, -1);
+        exit(1);
+    }
+}
 
 void print_macros(const macro *macro_list) {
     const macro *current_macro = macro_list;
@@ -138,6 +188,8 @@ void print_assembler_table(const assembler_table *table) {
     printf("\n--- Macros ---\n");
     print_macros(table->macro_list);
 }
+
+
 
 
 

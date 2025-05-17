@@ -7,14 +7,21 @@ int main(int argc , char ** argv){
     int i;
     for(i = 1 ; i < argc ; i++){
 
+        if(strlen(argv[i]) > MAX_LABEL_LENGTH){
+            errors_table(FILE_NAME_EXCEED_MAXIMUM, -1);
+            return false;
+        }
+
         assembler = initialize_assembler_table(argv[i]);
         
+        if(pre_proc(&assembler) == false){
+            return false;
+        }
 
-        /*pre_proc(&assembler);*/
 
-        print_assembler_table(assembler);
+        /*print_macros(assembler->macro_list);*/
 
-        print_macros(assembler->macro_list);
+        /*print_assembler_table(assembler);*/
 
         if (!first_pass(argv[i], assembler)) 
         {
@@ -22,7 +29,9 @@ int main(int argc , char ** argv){
             return 1;
         }
 
-        second_pass(&assembler);
+        if(second_pass(&assembler) == false){
+            return false;
+        }
 
         translation_unit(assembler);
         

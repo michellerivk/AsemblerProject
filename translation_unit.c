@@ -1,12 +1,8 @@
 #include "assembler.h"
 
-
-
 void trans_base_four(int number , char  dest[]){
     int i , curr_two_bits ,j;
    
-    
-
     for( i = 8 , j = 0 ; i >= 0  ;i-=2 , j++){
         curr_two_bits = number >> i;
         curr_two_bits = curr_two_bits & MASK_TWO_BITS;
@@ -22,8 +18,6 @@ void object_file (assembler_table * assembler){
     data * temp_data = NULL;
     FILE * fp_ob = NULL;
     char ic_dest [MAX_LABEL_LENGTH] = {0}, dc_dest [MAX_LABEL_LENGTH] = {0};
-
-    
 
     add_suffix(file_object, assembler-> source_file, ".ob");
     fp_ob = fopen(file_object, "w"); 
@@ -56,12 +50,13 @@ void ext_file(assembler_table * assembler){
     char dest_extern_usage[MAX_LABEL_LENGTH] = {0};
     external_label * temp_external_label = NULL;
     FILE * fp_ext = NULL;
+    bool file_empty = true;
 
     add_suffix(file_external, assembler-> source_file, ".ext");
     fp_ext = fopen(file_external, "w");
 
     while( temp_external_label != NULL){
-        
+        file_empty = false;
         while(temp_external_label->usage_list != NULL){
 
             trans_base_four(temp_external_label->usage_list->address, dest_extern_usage);
@@ -74,6 +69,10 @@ void ext_file(assembler_table * assembler){
         temp_external_label = temp_external_label->next;
     }
 
+    if(file_empty == true){
+        safe_remove(file_external);
+    }
+
     fclose(fp_ext);
 }
 
@@ -82,11 +81,13 @@ void ent_file(assembler_table * assembler){
     char dest_label_addr[MAX_LABEL_LENGTH] = {0};
     label * temp_label = NULL;
     FILE * fp_ent = NULL;
+    bool file_empty = true;
 
     add_suffix(file_entery, assembler-> source_file, ".ent");
     fp_ent = fopen(file_entery, "w");
 
     while(temp_label != NULL){
+        file_empty = false;
         if(temp_label->type ==  ENTRY){
             trans_base_four(temp_label->address , dest_label_addr);
             fprintf( fp_ent, "%s\t%s" , temp_label->name , dest_label_addr );
@@ -95,15 +96,18 @@ void ent_file(assembler_table * assembler){
         temp_label = temp_label->next;
     }
   
+    if(file_empty == true){
+        safe_remove(file_entery);
+    }
     
     fclose(fp_ent);
 }
 
 void translation_unit(assembler_table * assembler){
 
-     object_file (assembler);
+    object_file (assembler);
     ent_file(assembler);
-     ext_file(assembler);
+    ext_file(assembler);
 }
 
   

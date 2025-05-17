@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "help_functions.h"
+#include "first_pass_functions.h"
 
 /* Runs the first pass */
 int first_pass(const char *file, assembler_table *table) 
@@ -10,7 +10,7 @@ int first_pass(const char *file, assembler_table *table)
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
-    int icf, dfc;
+    bool label_flag = false;
 
     /* 0-ing the table */
     table->instruction_counter = 0;
@@ -25,7 +25,8 @@ int first_pass(const char *file, assembler_table *table)
     am = fopen(full_file, "r");
 
     /* Checks if file was opened. Returns error if no. */
-    if (!am) {
+    if (!am) 
+    {
         printf("ERROR: Could not open file %s\n", full_file);
         return 0;
     }
@@ -34,17 +35,14 @@ int first_pass(const char *file, assembler_table *table)
     while (fgets(line, MAX_LINE_LENGTH, am)) 
     {
         line_number++;
-        check_line(line, line_number ,table, &error_count);
+        check_line(line, line_number ,table, &error_count, label_flag);
     }
-
-    icf = table->instruction_counter;
-    dfc = table->data_counter;
 
     /* Closes files and frees memory */
     fclose(am);
     free(full_file);
 
-    print_assembler_table(table); /* ########debugging#####33 */
+    /*print_assembler_table(table);*/ /* ########debugging####### */
 
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
@@ -52,7 +50,11 @@ int first_pass(const char *file, assembler_table *table)
         printf("Please fix the previous %d errors, and start over!\n", error_count);
         return(0);
     }
+
+    /*print_assembler_table(table);*/
     
+    printf("The were no errors.\n");
+
     /* If there were no errors returns 1. */
     return 1;
 }
