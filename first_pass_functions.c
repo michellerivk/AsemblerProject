@@ -19,7 +19,6 @@ unsigned short build_matrix_reg_word(const char *op)
     return  (r1 << 8) | (r2 << 2);
 }
 
-
 /**
  * Extracts source and destination operands from a line after the command.
  *
@@ -55,7 +54,6 @@ void extract_operands(char *line, int command_start_i, int command_len, char *sr
         src[0] = dest[0] = '\0';
     }
 }
-
 
 /**
  * Checks if the command or directive exists in the given list of words.
