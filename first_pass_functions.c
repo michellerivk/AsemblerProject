@@ -4,6 +4,59 @@
 #include <ctype.h>
 #include "first_pass_functions.h"
 
+
+/**
+ * Builds the extra word that encodes the two index-registers of a matrix operand.
+ *
+ * @param op  The operand.
+ *
+ * @return    The 16-bit word with the two register IDs stored in their places.
+ */
+unsigned short build_matrix_reg_word(const char *op)
+{
+    int r1 = op[strchr(op,'[')+2 - op] - '0'; 
+    int r2 = op[strrchr(op,'[')+2 - op] - '0';  
+    return  (r1 << 8) | (r2 << 2);
+}
+
+
+/**
+ * Extracts source and destination operands from a line after the command.
+ *
+ * @param line             The full assembly line.
+ * @param command_start_i  The index where the command starts (אחרי label אם יש).
+ * @param command_len      The length of the command.
+ * @param src              (OUT) buffer for source operand.
+ * @param dest             (OUT) buffer for destination operand.
+ * @param operand_count    The number of operands (0/1/2).
+ */
+void extract_operands(char *line, int command_start_i, int command_len, char *src, char *dest, int operand_count)
+{
+    char *first = NULL;
+    char *second = NULL;
+    char *after_command = &line[command_start_i + command_len];
+    char copy[MAX_LINE_LENGTH];
+    strcpy(copy, after_command);
+    
+    first = strtok(copy, ", \t\n");
+    second = strtok(NULL, ", \t\n");
+
+    if (operand_count == 1 && first) 
+    {
+        strcpy(dest, first);
+    }
+    else if (operand_count == 2 && first && second) 
+    {
+        strcpy(src, first);
+        strcpy(dest, second);
+    }
+    else
+    {
+        src[0] = dest[0] = '\0';
+    }
+}
+
+
 /**
  * Checks if the command or directive exists in the given list of words.
  *
@@ -32,8 +85,11 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
             {
                 return len;
             }
-            
-            /* Checks if the operands in the command are ok */
+            else
+            {
+
+            }
+            /* Checks if the operands in the command are valid */
             if (check_command(line, len, error_count, get_instruction(command), command, label_flag))
             {
                 return len;
@@ -41,6 +97,245 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
         }
     }
     return -1;
+}
+
+/**
+ * @brief Returns the opcode value of the given command name.
+ *
+ * @param com The command name.
+ * @return The opcode of the command, or -1 if the command is unknown.
+ */
+ int check_command_value(char *com)
+ {
+    if (strcmp(com, "mov") == 0) return 0;
+    if (strcmp(com, "cmp") == 0) return 1;
+    if (strcmp(com, "add") == 0) return 2;
+    if (strcmp(com, "sub") == 0) return 3;
+    if (strcmp(com, "not") == 0) return 4;
+    if (strcmp(com, "clr") == 0) return 5;
+    if (strcmp(com, "lea") == 0) return 6;
+    if (strcmp(com, "inc") == 0) return 7;
+    if (strcmp(com, "dec") == 0) return 8;
+    if (strcmp(com, "jmp") == 0) return 9;
+    if (strcmp(com, "bne") == 0) return 10;
+    if (strcmp(com, "red") == 0) return 11;
+    if (strcmp(com, "prn") == 0) return 12;
+    if (strcmp(com, "jsr") == 0) return 13;
+    if (strcmp(com, "rts") == 0) return 14;
+    if (strcmp(com, "stop") == 0) return 15;
+
+    return -1;
+ }
+
+/**
+ * Validates an operand and returns its addressing-mode code.
+ *
+ * @param operand  The operand.
+ *
+ * @return The addressing-mode code of the operand.
+ */
+int get_addressing_mode(char *operand) 
+{
+    if (is_immediate(operand)) return 0;           
+    if (is_register(operand)) return 3;        
+    if (is_matrix(operand)) return 2;          
+    return 1;                                  
+}
+
+/**
+ * @brief Converts a command_parts structure into a 12-bit machine word.
+ *
+ * Format:
+ * bits 11-10: destination addressing mode (2 bits)
+ * bits 9-8: source addressing mode (2 bits)
+ * bits 7-4: opcode (4 bits)
+ * bits 1-0: ARE bits (2 bits)
+ *
+ * @param parts A pointer to a filled command_parts struct.
+ * @return The binary machine word as unsigned short (12-bit).
+ */
+unsigned short command_to_short(command_parts *parts) 
+{
+    unsigned short result = 0;
+
+    result |= (parts->dest_addr & 0x3) << 10; 
+    result |= (parts->source_addr & 0x3) << 8;
+    result |= (parts->opcode & 0xF) << 4;
+    result |= (parts->ARE & 0x3);
+
+    return result;
+}
+
+ /**
+ * Stores a new command node, assigns it a binary word,
+ * sets its memory address using the current Instruction Counter,
+ * and stores a label name that needs to be resolved in the second pass.
+ * The node is then added to the end of the assembler's command list.
+ *
+ * @param table           A pointer to the assembler's table structure.
+ * @param word_value      The binary word (12-bit) representing the command.
+ * @param referenced_label The name of the label referenced by this command (or NULL if not applicable).
+ */
+void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl) 
+{
+    command *new_node = (command *)malloc(sizeof(command));
+
+    /* Checks if the allocation was successful */
+    if (!new_node) 
+    {
+        printf("ERROR: Memory allocation failed.\n");
+        exit(1);
+    }
+
+    new_node->word.value = word_value;
+    new_node->address = table->instruction_counter;
+
+    if (lbl != NULL && lbl[0] != '\0') 
+    {
+        strncpy(new_node->referenced_label, lbl, MAX_LABEL_LENGTH);
+        new_node->referenced_label[MAX_LABEL_LENGTH - 1] = '\0';
+    } 
+    else 
+    {
+        new_node->referenced_label[0] = '\0';
+    }
+
+    new_node->next = NULL;
+
+    add_command_node(table, new_node);
+
+    table->instruction_counter++;
+}
+
+/**
+ * Builds the first command word using command_to_short(),
+ * and then adds additional words based on the source and destination operands.
+ * Each word is added to the code section using create_and_add_command().
+ *
+ * @param table     The assembler table to store commands.
+ * @param opcode    The numeric opcode of the command (from check_command_value()).
+ * @param src_oper  Source operand string (can be NULL if not used).
+ * @param dest_oper Destination operand string (can be NULL if not used).
+ * @param lbl       The name of the label
+ */
+void encode_command(assembler_table *table, int opcode, char *src_oper, char *dest_oper, char *lbl)  
+{
+    /* source and destination operands */
+    int src_mode;
+    int dest_mode;
+
+    /* full machine word */
+    command_parts word;
+
+    /* Checks if there is a source operand */
+    if (src_oper != NULL && src_oper[0] != '\0')
+    {
+        /* Checks if it's a register, immediate or a matrix*/
+        src_mode = get_addressing_mode(src_oper);
+    }
+    else
+    {
+        /* If none of them, -1 */
+        src_mode = -1;
+    }
+
+    /* Checks if there is a destenation operand */
+    if (dest_oper != NULL && dest_oper[0] != '\0')
+    {
+        /* Checks if it's a register, immediate or a matrix*/
+        dest_mode = get_addressing_mode(dest_oper);
+    }
+    else
+    {
+        /* If none of them, -1 */
+        dest_mode = -1;
+    }
+
+    /* Stores the opcode value in the struct */
+    word.opcode = opcode;
+
+    /* Stores the source address value, if there is one */
+    if (src_mode == -1)
+        word.source_addr = 0; /* Stores 0 if there isnt */
+    else
+        word.source_addr = src_mode;
+
+    /* Stores the destination address value, if there is one */
+    if (dest_mode == -1)
+        word.dest_addr = 0; /* Stores 0 if there isnt */
+    else
+        word.dest_addr = dest_mode;
+
+    /* ARE bits = 0 during the first pass */
+    word.ARE = 0;
+
+    create_and_add_command(table, command_to_short(&word), lbl);
+
+    /* Checks is both operands are registers */
+    if (src_mode == 3 && dest_mode == 3) 
+    {
+        unsigned short reg_word = (atoi(src_oper + 1)  << 8) | (atoi(dest_oper + 1) << 2); 
+        create_and_add_command(table, reg_word, NULL);
+        return;
+    }
+
+    /* Handles the source operand */
+    if (src_mode != -1) 
+    {
+        switch (src_mode) 
+        {
+            case 0: /* Immediate */
+            {                       
+                int val_src = atoi(src_oper + 1);      /* Skips # */
+                create_and_add_command(table, (val_src << 2), NULL);
+                break;
+            }
+            case 1: /* Label */
+                create_and_add_command(table, 0, src_oper);
+                break;
+
+            case 2: /* Matrix */
+                create_and_add_command(table, 0, src_oper); 
+                create_and_add_command(table, build_matrix_reg_word(src_oper), NULL);                            /* packed rX,rY */
+                break;
+
+            case 3: /* Register */
+            {
+                unsigned short reg_word = (atoi(src_oper + 1) << 8);
+                create_and_add_command(table, reg_word, NULL);
+                break;
+            }
+        }
+    }
+
+    /* Handles the destination operand */
+    if (dest_mode != -1) 
+    {
+        switch (dest_mode) 
+        {
+            case 0: /* Immediate */
+            {                      
+                int val_dst = atoi(dest_oper + 1);
+                create_and_add_command(table, (val_dst << 2), NULL);
+                break;
+            }
+            case 1: /* Lable */
+                create_and_add_command(table, 0, dest_oper);
+                break;
+
+            case 2: /* Matrix */
+                create_and_add_command(table, 0, dest_oper);          
+                create_and_add_command(table, build_matrix_reg_word(dest_oper), NULL);                            
+                break;
+
+            case 3: /* Register */
+            {                      
+                unsigned short reg_word = (atoi(dest_oper + 1) << 2);
+                create_and_add_command(table, reg_word, NULL);
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -67,6 +362,8 @@ void add_data_node(assembler_table *table, data *new_node)
         }
         temp->next = new_node;
     }
+
+    table->data_counter++;
 }
 
 /**
@@ -87,6 +384,31 @@ void add_label_node(assembler_table *table, label *new_node)
     else 
     {
         label *temp = table->label_list;
+        while (temp->next != NULL) 
+        {
+            temp = temp->next;
+        }
+        temp->next = new_node;
+    }
+}
+
+/**
+ * Adds a new command node to the code list in the assembler table.
+ *
+ * @param table     The assembler's table structure.
+ * @param new_node  The command node to add to the list.
+ */
+void add_command_node(assembler_table *table, command *new_node)
+{
+    /* Adds the first node if there were none before */
+    if (table->code_section == NULL) 
+    {
+        table->code_section = new_node;
+    }
+    /* Adds the node to the end of the list */ 
+    else 
+    {
+        command *temp = table->code_section;
         while (temp->next != NULL) 
         {
             temp = temp->next;
@@ -138,7 +460,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                     exit(1);
                 }
                 
-                /* Checks if the number is ok */
+                /* Checks if the number is valid */
                 if (!is_number_ok(arg)) 
                 {
                     printf("ERROR: The argument %s is not a number!\n", arg);
@@ -155,8 +477,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
                 /* Add the node to the list */
                 add_data_node(table, new_directive);
-
-                table->data_counter++;
 
                 arg = strtok(NULL, ",");
             }
@@ -198,11 +518,10 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     
                 add_data_node(table, new_directive);
     
-                table->data_counter++;
                 i++;
             }
 
-            /* Checks if the string ends with " */
+            /* Checks if the string ends with '"' */
             if (line[i] != '\"') 
             {
                 printf("ERROR: Missing closing quotation mark in .string directive\n");
@@ -226,8 +545,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Adds the node to the list */
             add_data_node(table, null_node);
 
-            table->data_counter++;
-
         }
     }
     else if (strcmp(directive, ".mat") == 0)
@@ -246,7 +563,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
         input = &line[i];
 
-        /* Checks if the input of the matrix is ok */
+        /* Checks if the input of the matrix is valid */
         if (sscanf(input, "[%d][%d]", &rows, &cols) != 2) 
         {
             printf("ERROR: The matrix was entered wrongly on line: %s\n", line);
@@ -312,7 +629,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Add the directive to the table */
             add_data_node(table, mat_node);
         
-            table->data_counter++;
             count++; /* Adds an argument to the counter */
 
             arg = strtok(NULL, ",");
@@ -508,24 +824,14 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     /* Inserts the name of the label into the table */
     strcpy(new_label->name, lbl);
 
-    /* Adds 100 to the IC on the first incounter */
-    if (type == CODE && table->instruction_counter == 0)
+    if (type == CODE) 
     {
-        table->instruction_counter += 100;
         new_label->address = table->instruction_counter;
     }
-    
-    else 
+
+    else if (type == DATA) 
     {
-        /* Checks what counter to assign to the address */
-        if (type == DATA)
-        {
-            new_label->address = table->data_counter + table->instruction_counter + 1;
-        }
-        if (type == CODE)
-        {
-            new_label->address = table->instruction_counter + 1;
-        }
+        new_label->address = table->data_counter + table->instruction_counter;
     }
 
     new_label->type = type;
@@ -670,7 +976,7 @@ int is_label_ok(char *label)
         return false;
     }
 
-    /* Returns true if the label is ok */
+    /* Returns true if the label is valid */
     return true;
 }
 
@@ -755,26 +1061,27 @@ int get_instruction(char *com)
  * @param error_count  The number of errors found so far.
  * @param label_flag   Boolean variable used to check if this line starts with a label.
  */
-void update_ic(char *line, int i, const char *commands[], int com_len, 
+char * update_ic(char *line, int i, const char *commands[], int com_len, 
                assembler_table *table, int *error_count, bool label_flag)
 {
     int len = check_word(line, i, commands, com_len, error_count, label_flag);
 
     if (len != -1)
     {
-        char command_name[MAX_LINE_LENGTH];
-        int L; /* The number of operends */
+        char *command_name = malloc(MAX_LINE_LENGTH);
+        if (!command_name) 
+        {
+            printf("ERROR: Memory allocation failed.\n");
+            exit(1);
+        }
 
         strncpy(command_name, &line[i], len);
         command_name[len] = '\0';
 
-        /* Checks the amount of arguments needed for the command*/
-        L = get_instruction(command_name);
-
-        table->instruction_counter += 1 + L; /* Updates the IC to IC + L */
+        return command_name;
     };
 
-    
+    return NULL;
 }
 
 /**
@@ -806,7 +1113,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     };
 
     int dir_len = sizeof(directives) / sizeof(directives[0]); /* The total size of the directives array */
-
+    char command_name[MAX_LINE_LENGTH];
+    char src[MAX_LINE_LENGTH] = "", dest[MAX_LINE_LENGTH] = ""; 
     int i = 0;
 
     /* The line doesn't have a label */
@@ -817,7 +1125,11 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
         if (len != -1)
         {
-            update_ic(line, i, commands, com_len, table, error_count, label_flag);
+            strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag));update_ic(line, i, commands, com_len, table, error_count, label_flag);
+
+            extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
+
+            encode_command(table, check_command_value(command_name), src, dest, NULL);
         }
         else
         {
@@ -850,11 +1162,13 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         /* Turns on label_flag */
         label_flag = true;
 
-        /* Cheks if label is ok */
+        /* Checks if the label is valid */
         if (is_label_ok(line))
         {
             bool good_label;
             int len;
+            char label_name[MAX_LABEL_LENGTH];
+
             good_label = add_label(table, line, i, error_count, commands, directives, com_len, dir_len, label_flag);
 
             if (good_label == false)
@@ -866,10 +1180,12 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* Skip the label */
             while (line[i] && line[i] != ':') 
             {
+                label_name[i] = line[i];
                 i++;
             }
             if (line[i] == ':') 
             {
+                label_name[i] = '\0';
                 i++;
             }
             
@@ -892,7 +1208,13 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
             if (len != -1)
             {
-                update_ic(line, i, commands, com_len, table, error_count, label_flag); /* Updates the IC */
+                 /* Updates the IC, and gets the name of the command */
+                strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag));
+
+                extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
+
+                encode_command(table, check_command_value(command_name), src, dest, label_name);
+
                 return;
             }
 
@@ -902,7 +1224,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             return;
         }
 
-        /* Sends an error if the label is not ok */
+        /* Sends an error if the label is not valid */
         else
         {
             printf("ERROR: No label was found in the line: %s\n", line);
