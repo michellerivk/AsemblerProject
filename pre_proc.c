@@ -147,7 +147,7 @@ bool pre_proc(assembler_table ** assembler){
         (*line_counter)++;
     }
 
-    printf("\n\nERRORS:\n");
+    printf("\n\n=== ERRORS ===\n");
 
 
 
