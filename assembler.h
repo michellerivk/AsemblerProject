@@ -75,6 +75,13 @@ typedef struct code_word {
     unsigned short value;
 } code_word;
 
+typedef struct command_parts {
+    int opcode;
+    int source_addr;
+    int dest_addr;
+    int ARE;
+} command_parts;
+
 typedef struct command {
     code_word word;
     int address;
@@ -154,14 +161,6 @@ int first_pass(const char *am_file);
 int macro(const char *as_file);
 char *add_ending(const char *file_name, const char *ending);
 */
-
-/**
- * The function removes all the white spaces at the start of the string.
- *
- * @param input The given string.
- * @param i The start of the string.
- */
-int delete_white_spaces(char input[], int i);
 
 void check_line(char *line, int line_number, assembler_table *table, int *error_count, bool label_flag);
 

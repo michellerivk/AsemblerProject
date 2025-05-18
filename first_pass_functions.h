@@ -34,6 +34,55 @@ char *get_label(char *line, int i);
  */
 int is_command_ok(char *word);
 
+int get_addressing_mode(char *operand);
+
+/**
+ * @brief Extracts source and destination operands from a line after the command.
+ *
+ * @param line             The full assembly line.
+ * @param command_start_i  The index where the command starts (אחרי label אם יש).
+ * @param command_len      The length of the command.
+ * @param src              (OUT) buffer for source operand.
+ * @param dest             (OUT) buffer for destination operand.
+ * @param operand_count    The number of operands (0/1/2).
+ */
+void extract_operands(char *line, int command_start_i, int command_len, char *src, char *dest, int operand_count);
+
+/**
+ * @brief Encodes a full assembly command line into machine words.
+ *
+ * This function builds the first command word using command_to_short(),
+ * and then adds additional words based on the source and destination operands.
+ * Each word is added to the code section using create_and_add_command().
+ *
+ * @param table        The assembler table to store commands.
+ * @param opcode       The numeric opcode of the command (from check_command_value()).
+ * @param src_operand  Source operand string (can be NULL if not used).
+ * @param dest_operand Destination operand string (can be NULL if not used).
+ */
+void encode_command(assembler_table *table, int opcode, char *src_operand, char *dest_operand, char *lbl);
+
+/**
+ * @brief Returns the opcode value of the given command name.
+ *
+ * @param word The command name (e.g. "mov", "add", "jmp").
+ * @return The opcode value (0-15) if valid, or -1 if the command is unknown.
+ */
+ int check_command_value(char *com);
+
+/**
+ * @brief Creates a new command node and inserts it into the assembler's code section.
+ *
+ * This function allocates memory for a new command node, assigns it a binary word,
+ * sets its memory address using the current instruction counter (IC).
+ * The node is then added to the end of the assembler's command list.
+ *
+ * @param table           The assembler's table structure.
+ * @param word_value      The binary word representing the command.
+ * @param referenced_label The name of the label referenced by this command (or "" if not applicable).
+ */
+void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl);
+
 /**
  * @brief Adds a new label with address and type to the assembler table.
  *
@@ -103,6 +152,14 @@ void add_data_node(assembler_table *table, data *new_node);
 void add_label_node(assembler_table *table, label *new_node);
 
 /**
+ * Adds a new command node to the code list in the assembler table.
+ *
+ * @param table     The assembler's table structure.
+ * @param new_node  The command node to add to the list.
+ */
+void add_command_node(assembler_table *table, command *new_node);
+
+/**
  * @brief Parses a directive line, and updates the assembler table.
  *
  * @param table        The assembler's table structure.
@@ -161,7 +218,7 @@ int is_label_ok(char *label);
  * @param error_count  The number of errors found so far.
  * @param label_flag   Boolean variable used to check if this line starts with a label.
  */
-void update_ic(char *line, int i, const char *commands[], int com_len, 
+char * update_ic(char *line, int i, const char *commands[], int com_len, 
                assembler_table *table, int *error_count, bool label_flag);
 
 
