@@ -103,7 +103,7 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
  * @param com The command name.
  * @return The opcode of the command, or -1 if the command is unknown.
  */
- int check_command_value(char *com)
+int check_command_value(char *com)
  {
     if (strcmp(com, "mov") == 0) return 0;
     if (strcmp(com, "cmp") == 0) return 1;
@@ -188,14 +188,39 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
     new_node->word.value = word_value;
     new_node->address = table->instruction_counter;
 
+    /* Extract base label if operand looks like  LABEL[...] */
     if (lbl != NULL && lbl[0] != '\0') 
     {
-        strncpy(new_node->referenced_label, lbl, MAX_LABEL_LENGTH);
-        new_node->referenced_label[MAX_LABEL_LENGTH - 1] = '\0';
+        /* Is it a matrix operand like M1[r2][r7] */
+        if (strchr(lbl, '[')) 
+        {
+            char copy_of_label[MAX_LABEL_LENGTH];
+            char matrix_label[MAX_LABEL_LENGTH];
+            int i = 0;
+
+            strcpy(copy_of_label, lbl);
+            while (copy_of_label[i] != '[')
+            {
+                matrix_label[i] = copy_of_label[i];
+                i++;
+            }
+            matrix_label[i] = '\0';
+            
+            strcpy(new_node->referenced_label, matrix_label);
+        } 
+
+        else 
+        {
+            /* plain label or immediate — copy as-is */
+            strncpy(new_node->referenced_label, lbl, MAX_LABEL_LENGTH - 1);
+            new_node->referenced_label[MAX_LABEL_LENGTH - 1] = '\0';
+        }
+
     } 
     else 
     {
-        new_node->referenced_label[0] = '\0';
+            /* no label reference for this word */
+            new_node->referenced_label[0] = '\0';
     }
 
     new_node->next = NULL;
@@ -224,7 +249,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
 
     /* full machine word */
     command_parts word;
-
+    
     /* Checks if there is a source operand */
     if (src_oper != NULL && src_oper[0] != '\0')
     {
@@ -284,7 +309,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
         {
             case 0: /* Immediate */
             {                       
-                int val_src = atoi(src_oper + 1);      /* Skips # */
+                int val_src = atoi(src_oper + 1); /* Skips # */
                 create_and_add_command(table, (val_src << 2), NULL);
                 break;
             }
@@ -294,7 +319,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
 
             case 2: /* Matrix */
                 create_and_add_command(table, 0, src_oper); 
-                create_and_add_command(table, build_matrix_reg_word(src_oper), NULL);                            /* packed rX,rY */
+                create_and_add_command(table, build_matrix_reg_word(src_oper), NULL);
                 break;
 
             case 3: /* Register */
