@@ -17,7 +17,7 @@
 #define MASK_TWO_BITS 3
 #define UP_TO_CHARACTER 65
 
-/* Deffinitions for the first_pass() */
+/* Label deffinitions for the first_pass() */
 #define CODE 0
 #define DATA 1
 #define STRING 2

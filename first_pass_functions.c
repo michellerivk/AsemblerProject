@@ -8,9 +8,9 @@
 /**
  * Builds the extra word that encodes the two index-registers of a matrix operand.
  *
- * @param op  The operand.
+ * @param op The operand.
  *
- * @return    The 16-bit word with the two register IDs stored in their places.
+ * @return The 16-bit word with the two register IDs stored in their places.
  */
 unsigned short build_matrix_reg_word(const char *op)
 {
@@ -23,11 +23,11 @@ unsigned short build_matrix_reg_word(const char *op)
  * Extracts source and destination operands from a line after the command.
  *
  * @param line             The full assembly line.
- * @param command_start_i  The index where the command starts (אחרי label אם יש).
+ * @param command_start_i  The index where the command starts.
  * @param command_len      The length of the command.
- * @param src              (OUT) buffer for source operand.
- * @param dest             (OUT) buffer for destination operand.
- * @param operand_count    The number of operands (0/1/2).
+ * @param src              The source operand.
+ * @param dest             The destination operand.
+ * @param operand_count    The number of operands.
  */
 void extract_operands(char *line, int command_start_i, int command_len, char *src, char *dest, int operand_count)
 {
@@ -98,7 +98,7 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
 }
 
 /**
- * @brief Returns the opcode value of the given command name.
+ * Returns the opcode value of the given command name.
  *
  * @param com The command name.
  * @return The opcode of the command, or -1 if the command is unknown.
@@ -141,16 +141,10 @@ int get_addressing_mode(char *operand)
 }
 
 /**
- * @brief Converts a command_parts structure into a 12-bit machine word.
+ * Converts a command_parts structure into a machine word.
  *
- * Format:
- * bits 11-10: destination addressing mode (2 bits)
- * bits 9-8: source addressing mode (2 bits)
- * bits 7-4: opcode (4 bits)
- * bits 1-0: ARE bits (2 bits)
- *
- * @param parts A pointer to a filled command_parts struct.
- * @return The binary machine word as unsigned short (12-bit).
+ * @param parts A command_parts struct.
+ * @return The binary machine word as unsigned short.
  */
 unsigned short command_to_short(command_parts *parts) 
 {
@@ -164,15 +158,12 @@ unsigned short command_to_short(command_parts *parts)
     return result;
 }
 
- /**
- * Stores a new command node, assigns it a binary word,
- * sets its memory address using the current Instruction Counter,
- * and stores a label name that needs to be resolved in the second pass.
- * The node is then added to the end of the assembler's command list.
+/**
+ * Stores a new command node to the command list.
  *
- * @param table           A pointer to the assembler's table structure.
- * @param word_value      The binary word (12-bit) representing the command.
- * @param referenced_label The name of the label referenced by this command (or NULL if not applicable).
+ * @param table            The assembler table to store commands.
+ * @param word_value       The binary word representing the command.
+ * @param referenced_label The name of the label referenced by this command. Null if there is no label.
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl) 
 {
@@ -231,14 +222,12 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
 }
 
 /**
- * Builds the first command word using command_to_short(),
- * and then adds additional words based on the source and destination operands.
- * Each word is added to the code section using create_and_add_command().
+ * Builds command words, and adds them to the code section.
  *
  * @param table     The assembler table to store commands.
- * @param opcode    The numeric opcode of the command (from check_command_value()).
- * @param src_oper  Source operand string (can be NULL if not used).
- * @param dest_oper Destination operand string (can be NULL if not used).
+ * @param opcode    The numeric opcode of the command.
+ * @param src_oper  Source operand, NULL if there isnt one.
+ * @param dest_oper Destination operand, NULL if there isnt one.
  * @param lbl       The name of the label
  */
 void encode_command(assembler_table *table, int opcode, char *src_oper, char *dest_oper, char *lbl)  
@@ -666,7 +655,16 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     }    
     else if (strcmp(directive, ".entry") == 0)
     {
-        return;
+        int type =  ENTRY;
+
+        if (strstr(line, ".entry"))
+        {
+            char lbl[MAX_LABEL_LENGTH];
+            
+            strcpy(lbl, "entry");
+
+            add_label_to_table(table, lbl, type, error_count);
+        }
         /* ###############Second Pass################### */
     }    
     else if (strcmp(directive, ".extern") == 0)

@@ -34,6 +34,13 @@ char *get_label(char *line, int i);
  */
 int is_command_ok(char *word);
 
+/**
+ * @brief Validates an operand and returns its addressing-mode code.
+ *
+ * @param operand  The operand.
+ *
+ * @return The addressing-mode code of the operand.
+ */
 int get_addressing_mode(char *operand);
 
 /**
@@ -51,16 +58,23 @@ void extract_operands(char *line, int command_start_i, int command_len, char *sr
 /**
  * @brief Encodes a full assembly command line into machine words.
  *
- * This function builds the first command word using command_to_short(),
- * and then adds additional words based on the source and destination operands.
- * Each word is added to the code section using create_and_add_command().
+ * Builds command words, and adds them to the code section.
  *
- * @param table        The assembler table to store commands.
- * @param opcode       The numeric opcode of the command (from check_command_value()).
- * @param src_operand  Source operand string (can be NULL if not used).
- * @param dest_operand Destination operand string (can be NULL if not used).
+ * @param table     The assembler table to store commands.
+ * @param opcode    The numeric opcode of the command.
+ * @param src_oper  Source operand, NULL if there isnt one.
+ * @param dest_oper Destination operand, NULL if there isnt one.
+ * @param lbl       The name of the label
  */
 void encode_command(assembler_table *table, int opcode, char *src_operand, char *dest_operand, char *lbl);
+
+/**
+ * @brief Converts a command_parts structure into a machine word.
+ *
+ * @param parts A command_parts struct.
+ * @return The binary machine word as unsigned short.
+ */
+unsigned short command_to_short(command_parts *parts);
 
 /**
  * @brief Returns the opcode value of the given command name.

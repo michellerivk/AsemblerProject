@@ -33,17 +33,6 @@ int first_pass(const char *file, assembler_table *table)
     FILE *am; /* A variable to include the opened am file */
     bool label_flag = false;
 
-
-
-
-    int code_size = 0; 
-    data  *d = NULL;
-    label *l = NULL;
-
-
-
-
-
     /* 0-ing the table */
     table->instruction_counter = 100;
     table->data_counter = 0;
@@ -83,23 +72,7 @@ int first_pass(const char *file, assembler_table *table)
         return(0);
     }
 
-    printf("The were no errors.\n");
-
-    /*
-    code_size = table->instruction_counter;
-    d = table->data_section;
-    l = table->label_list;
-    while (d) {           
-        d->address += code_size;
-        d = d->next;
-    }
-    while (l) {           
-        if (l->type == DATA)
-            l->address += code_size;
-        l = l->next;
-    }
-    */
-
+    printf("The were no errors.\n\n");
 
     print_assembler_table(table);
     
