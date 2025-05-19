@@ -1185,7 +1185,8 @@ char * update_ic(char *line, int i, const char *commands[], int com_len,
     return NULL;
 }
 
-void add_entry_addresses(assembler_table *table)
+/* Checks if there's a CODE\DATA lable that matches the entry one, and changes the entry's address */
+void add_entry_addresses(assembler_table *table, int *error_count)
 {
     label *entry = table->label_list;
 
@@ -1206,7 +1207,9 @@ void add_entry_addresses(assembler_table *table)
 
             if (defined == NULL)
             {
-                printf("WARNING: .entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
+                printf("ERROR: entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
+                (*error_count)++; 
+                return;
             }
         }
 
@@ -1282,7 +1285,6 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* If there is no directive nor command, it will do nothing */
             else
             {
-                printf("Nothing to do in line: %s\n", line);
                 return;
             }
         }
@@ -1299,7 +1301,6 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         {
             bool good_label;
             int len;
-            char label_name[MAX_LABEL_LENGTH];
 
             good_label = add_label(table, line, i, error_count, commands, directives, com_len, dir_len, label_flag);
 
@@ -1312,12 +1313,10 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* Skip the label */
             while (line[i] && line[i] != ':') 
             {
-                label_name[i] = line[i];
                 i++;
             }
             if (line[i] == ':') 
             {
-                label_name[i] = '\0';
                 i++;
             }
             
