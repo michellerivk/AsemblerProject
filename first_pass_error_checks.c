@@ -321,10 +321,14 @@ bool is_matrix(char *operand)
     strncpy(index2, second_open + 1, second_close - second_open - 1);
     index2[second_close - second_open - 1] = '\0';
 
-    /* Check if both are valid registers */
-    if (is_register(index1) && is_register(index2)) {
+    /* Check if both are valid registers, or have no value */
+    if ((is_register(index1) && is_register(index2)) ||
+        (is_register(index1) && index2[0] == '\0') ||
+        (index1[0] == '\0' && is_register(index2)) ||
+        (index1[0] == '\0' && index2 [0]== '\0')) 
+    {
         return true;
-    }
+    }    
 
     return false;
 }
