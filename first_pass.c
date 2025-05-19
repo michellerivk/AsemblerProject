@@ -51,7 +51,7 @@ int first_pass(const char *file, assembler_table *table)
         printf("ERROR: Could not open file %s\n", full_file);
         return 0;
     }
-
+    
     /* Checks every line of the file to insert into the table. */
     while (fgets(line, MAX_LINE_LENGTH, am)) 
     {
