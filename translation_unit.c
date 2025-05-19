@@ -22,22 +22,23 @@ void object_file (assembler_table * assembler){
     add_suffix(file_object, assembler-> source_file, ".ob");
     fp_ob = fopen(file_object, "w"); 
 
-    trans_base_four(assembler->instruction_counter , ic_dest);
+    trans_base_four(assembler->instruction_counter - 100 , ic_dest);
     trans_base_four(assembler->data_counter ,dc_dest );
-    fprintf( fp_ob, "%s\t%s" , ic_dest , dc_dest);
-
+    fprintf( fp_ob, "%s\t%s\n" , ic_dest , dc_dest);
+    temp_command = assembler->code_section;
     while(temp_command != NULL){
         trans_base_four(temp_command->address , dest_addr);
         trans_base_four(temp_command->word.value , dest_word);
-        fprintf( fp_ob, "%s\t%s" , dest_addr , dest_word );
+        fprintf( fp_ob, "%s\t%s\n" , dest_addr , dest_word );
          
         temp_command = temp_command->next;
     }
 
+    temp_data = assembler->data_section;
     while(temp_data != NULL){
-        trans_base_four(temp_data->address , dest_addr);
+        trans_base_four(temp_data->address + assembler->instruction_counter  , dest_addr);
         trans_base_four(temp_data->word.value , dest_word);
-        
+        fprintf( fp_ob, "%s\t%s\n" , dest_addr , dest_word );
         temp_data = temp_data->next;
     }
     fclose(fp_ob);
@@ -55,12 +56,13 @@ void ext_file(assembler_table * assembler){
     add_suffix(file_external, assembler-> source_file, ".ext");
     fp_ext = fopen(file_external, "w");
 
+    temp_external_label = assembler->external_list;
     while( temp_external_label != NULL){
         file_empty = false;
         while(temp_external_label->usage_list != NULL){
 
             trans_base_four(temp_external_label->usage_list->address, dest_extern_usage);
-            fprintf( fp_ext, "%s\t%s" , temp_external_label->label , dest_extern_usage );
+            fprintf( fp_ext, "%s\t%s\n" , temp_external_label->label , dest_extern_usage );
             
 
             temp_external_label->usage_list = temp_external_label->usage_list->next;
@@ -86,11 +88,12 @@ void ent_file(assembler_table * assembler){
     add_suffix(file_entery, assembler-> source_file, ".ent");
     fp_ent = fopen(file_entery, "w");
 
+    temp_label = assembler->label_list;
     while(temp_label != NULL){
         file_empty = false;
         if(temp_label->type ==  ENTRY){
             trans_base_four(temp_label->address , dest_label_addr);
-            fprintf( fp_ent, "%s\t%s" , temp_label->name , dest_label_addr );
+            fprintf( fp_ent, "%s\t%s\n" , temp_label->name , dest_label_addr );
            
         }
         temp_label = temp_label->next;
@@ -109,9 +112,3 @@ void translation_unit(assembler_table * assembler){
     ent_file(assembler);
     ext_file(assembler);
 }
-
-  
-    
-
-
-

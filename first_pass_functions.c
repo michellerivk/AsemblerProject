@@ -177,22 +177,22 @@ unsigned short command_to_short(command_parts *parts)
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl) 
 {
-    command *new_node = (command *)malloc(sizeof(command));
+    command *new_command = (command *)malloc(sizeof(command));
 
     /* Checks if the allocation was successful */
-    if (!new_node) 
+    if (!new_command) 
     {
         printf("ERROR: Memory allocation failed.\n");
         exit(1);
     }
 
-    new_node->word.value = word_value;
-    new_node->address = table->instruction_counter;
+    new_command->word.value = word_value;
+    new_command->address = table->instruction_counter;
 
-    /* Extract base label if operand looks like LABEL[...] */
+    /* Gets base label */
     if (lbl != NULL && lbl[0] != '\0') 
     {
-        /* Checks if it's a matrix operand like M1[r2][r7] */
+        /* Checks if it's a matrix operand */
         if (strchr(lbl, '[')) 
         {
             char copy_of_label[MAX_LABEL_LENGTH];
@@ -207,26 +207,25 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
             }
             matrix_label[i] = '\0';
             
-            strcpy(new_node->referenced_label, matrix_label);
+            strcpy(new_command->referenced_label, matrix_label);
         } 
 
         else 
         {
-            /* plain label or immediate — copy as-is */
-            strncpy(new_node->referenced_label, lbl, MAX_LABEL_LENGTH - 1);
-            new_node->referenced_label[MAX_LABEL_LENGTH - 1] = '\0';
+            strncpy(new_command->referenced_label, lbl, MAX_LABEL_LENGTH - 1);
+            new_command->referenced_label[MAX_LABEL_LENGTH - 1] = '\0';
         }
 
     } 
     else 
     {
             /* no label reference for this word */
-            new_node->referenced_label[0] = '\0';
+            new_command->referenced_label[0] = '\0';
     }
 
-    new_node->next = NULL;
+    new_command->next = NULL;
 
-    add_command_node(table, new_node);
+    add_command_node(table, new_command);
 
     table->instruction_counter++;
 }
@@ -670,12 +669,26 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         int type =  ENTRY;
 
         if (strstr(line, ".entry"))
-        {
-            char lbl[MAX_LABEL_LENGTH];
-            
-            strcpy(lbl, "entry");
+        {                  
+            char *input = strstr(line, ".entry");
 
-            add_label_to_table(table, lbl, type, error_count);
+            if (input != NULL)
+            {
+                char lbl[MAX_LABEL_LENGTH];
+                int j = 0;
+                int i = (int)(input - line);
+                i += 6;
+
+                while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
+                {
+                    lbl[j++] = line[i++];
+                }
+
+                lbl[j] = '\0';
+                printf("label: %s\n",lbl);
+
+                add_label_to_table(table, lbl, type, error_count);
+            }
         }
         /* ###############Second Pass################### */
     }    
