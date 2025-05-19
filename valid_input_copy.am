@@ -1,11 +1,13 @@
 ;
-MAIN:movM1[][],W
-addr2,STR
+.entryLOOP
+.entryLENGTH
+.externL3
+.externW
 LOOP:jmpW
 prn#-5
 subr1,r4
 incK
-movM1[r2][r7],r3
+movM1[r3][r3],r3
 bneL3
 END:stop
 STR:.string"abcdef"
