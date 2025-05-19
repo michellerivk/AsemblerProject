@@ -68,7 +68,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
     {
-        printf("Please fix the previous %d errors, and start over!\n", error_count);
+        printf("\nPlease fix the previous %d errors, and start over!\n", error_count);
         return(0);
     }
 

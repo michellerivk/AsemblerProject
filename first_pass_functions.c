@@ -83,15 +83,15 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
             {
                 return len;
             }
-            else
-            {
-
-            }
             /* Checks if the operands in the command are valid */
             if (check_command(line, len, error_count, get_instruction(command), command, label_flag))
             {
                 return len;
-            }            
+            }     
+            else
+            {
+                return -1;
+            }       
         }
     }
     return -1;
@@ -837,7 +837,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     /* Checks if the label exists already in the table */
     if (check_for_label(table->label_list, lbl)) 
     {
-        printf("ERROR: The label: %s exists already in the table.", lbl);
+        printf("ERROR: The label: %s exists already in the table.\n", lbl);
         (*error_count)++;
         return; 
     }
@@ -874,9 +874,8 @@ int check_for_label(label *list, char *label)
 {
     while (list != NULL) 
     {
-        if (strcmp(list->name, label) == 0) 
+        if (strcmp(list->name, label) == 0 && strcmp(list->name, "entry") != 0) 
         {
-
             return true;
         }
         list = list->next;
