@@ -63,7 +63,6 @@ int first_pass(const char *file, assembler_table *table)
     fclose(am);
     free(full_file);
 
-    print_assembler_table(table); /* ########debugging####### */
 
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
@@ -71,6 +70,9 @@ int first_pass(const char *file, assembler_table *table)
         printf("\nPlease fix the previous %d errors, and start over!\n", error_count);
         return(0);
     }
+
+    print_assembler_table(table); /* ########debugging####### */
+
 
     printf("The were no errors.\n\n");
 

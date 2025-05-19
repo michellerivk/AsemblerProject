@@ -160,10 +160,10 @@ unsigned short command_to_short(command_parts *parts)
 {
     unsigned short result = 0;
 
-    result |= (parts->dest_addr & 0x3) << 10; 
-    result |= (parts->source_addr & 0x3) << 8;
-    result |= (parts->opcode & 0xF) << 4;
-    result |= (parts->ARE & 0x3);
+    result |= (parts->opcode & 0xF) << 6;       /* Bits 6–9 */
+    result |= (parts->source_addr & 0x3) << 4;  /* Bits 4–5 */
+    result |= (parts->dest_addr & 0x3) << 2;    /* Bits 2–3 */
+    result |= (parts->ARE & 0x3);               /* Bits 0–1 */
 
     return result;
 }
@@ -177,6 +177,8 @@ unsigned short command_to_short(command_parts *parts)
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl) 
 {
+    bool is_external = false;
+    external_label *ext = NULL;
     command *new_command = (command *)malloc(sizeof(command));
 
     /* Checks if the allocation was successful */
@@ -189,8 +191,21 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
     new_command->word.value = word_value;
     new_command->address = table->instruction_counter;
 
+    /* Checks if the label is a .extern, and decides if it should be added to the code table. */
+    ext = table->external_list;
+    while (ext) 
+    {
+        if (lbl != NULL && strcmp(ext->label, lbl) == 0) 
+        {
+            is_external = true;
+            break;
+        }
+        ext = ext->next;
+    }
+
+
     /* Gets base label */
-    if (lbl != NULL && lbl[0] != '\0') 
+    if (lbl != NULL && lbl[0] != '\0' && !is_external) 
     {
         /* Checks if it's a matrix operand */
         if (strchr(lbl, '[')) 
@@ -669,7 +684,8 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         int type =  ENTRY;
 
         if (strstr(line, ".entry"))
-        {                  
+        {       
+            /*           
             char *input = strstr(line, ".entry");
 
             if (input != NULL)
@@ -685,10 +701,10 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 }
 
                 lbl[j] = '\0';
-                printf("label: %s\n",lbl);
 
                 add_label_to_table(table, lbl, type, error_count);
             }
+                */
         }
         /* ###############Second Pass################### */
     }    
@@ -1203,7 +1219,9 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
         if (len != -1)
         {
-            strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag));update_ic(line, i, commands, com_len, table, error_count, label_flag);
+            strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag));
+            
+            update_ic(line, i, commands, com_len, table, error_count, label_flag);
 
             extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
