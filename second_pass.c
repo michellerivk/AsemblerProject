@@ -134,6 +134,9 @@ bool second_pass(assembler_table ** assembler){
 
             if(error != true){
                 error = complement_ext_word(assembler, ptr_cmd);
+                if(error == false){
+                    final_error = false;
+                }
             }
 
             if(error == false){
@@ -150,3 +153,6 @@ bool second_pass(assembler_table ** assembler){
 
     return final_error;
 }
+  
+    
+

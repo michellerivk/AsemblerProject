@@ -9,13 +9,13 @@
 #define MAX_LINE_LENGTH 81
 #define MAX_LABEL_LENGTH 31
 
-#define ENTRY 0
+#define ENTRY 5
 #define R 2
 #define E 1
 #define SHIFT_AFTER_ARE 2
 
 #define MASK_TWO_BITS 3
-#define UP_TO_CHARACTER 65
+#define UP_TO_CHARACTER 0x61
 
 /* Label deffinitions for the first_pass() */
 #define CODE 0

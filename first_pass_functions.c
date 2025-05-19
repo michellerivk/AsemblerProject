@@ -684,8 +684,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         int type =  ENTRY;
 
         if (strstr(line, ".entry"))
-        {       
-            /*           
+        {                 
             char *input = strstr(line, ".entry");
 
             if (input != NULL)
@@ -704,7 +703,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
                 add_label_to_table(table, lbl, type, error_count);
             }
-                */
         }
         /* ###############Second Pass################### */
     }    
@@ -900,6 +898,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
+    label *existing = table->label_list;
 
     /* Checks if memory allocation failed */
     if (!new_label) 
@@ -908,12 +907,31 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
         exit(1);
     }
 
-    /* Checks if the label exists already in the table */
-    if (check_for_label(table->label_list, lbl)) 
+    /* Checks if there are labels in the table already */
+    while (existing != NULL)
     {
-        printf("ERROR: The label: %s exists already in the table.\n", lbl);
-        (*error_count)++;
-        return; 
+        if (strcmp(existing->name, lbl) == 0)
+        {
+            /* Checks if 2 labels have the same name and type */
+            if (existing->type == type)
+            {
+                printf("ERROR: The label '%s' already exists with the same type.\n", lbl);
+                (*error_count)++;
+                return;
+            }
+            else
+            {
+                /* Updates the type to Entry */
+                if (type == ENTRY)
+                {
+                    existing->type = ENTRY;
+                }
+
+                return;
+            }
+        }
+
+        existing = existing->next;
     }
 
     /* Inserts the name of the label into the table */
