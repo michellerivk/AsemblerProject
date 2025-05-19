@@ -73,6 +73,7 @@ int first_pass(const char *file, assembler_table *table)
 
     print_assembler_table(table); /* ########debugging####### */
 
+
     printf("The were no errors.\n\n");
 
     /* If there were no errors returns 1. */
