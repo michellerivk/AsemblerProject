@@ -681,38 +681,29 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     }    
     else if (strcmp(directive, ".entry") == 0)
     {
-        char *input = strstr(line, ".entry");
+        int type =  ENTRY;
 
-        if (input != NULL)
-        {
-            label *new_lbl = table->label_list;
-            char lbl[MAX_LABEL_LENGTH];
-            int j = 0;
-            int i = (int)(input - line);
-            i += 6;
+        if (strstr(line, ".entry"))
+        {                 
+            char *input = strstr(line, ".entry");
 
-            while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
+            if (input != NULL)
             {
-                lbl[j++] = line[i++];
-            }
+                char lbl[MAX_LABEL_LENGTH];
+                int j = 0;
+                int i = (int)(input - line);
+                i += 6;
 
-            lbl[j] = '\0';
-
-            /* Checks if label exists */
-            while (new_lbl != NULL) 
-            {
-                if (strcmp(new_lbl->name, lbl) == 0) 
+                while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
                 {
-                    new_lbl->type = ENTRY;
-                    return;
+                    lbl[j++] = line[i++];
                 }
-                new_lbl = new_lbl->next;
+
+                lbl[j] = '\0';
+
+                add_label_to_table(table, lbl, type, error_count);
             }
-
-            /* Add the entry to the entry list */
-            add_entry_to_list(table, lbl);
-    }
-
+        }
         /* ###############Second Pass################### */
     }    
     else if (strcmp(directive, ".extern") == 0)
@@ -896,22 +887,6 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
     table->external_list = lbl;
 }
 
-/* Adds an entry to a list until the entry appears in the file */
-void add_entry_to_list(assembler_table *table, const char *label_name)
-{
-    entry *new_entry = malloc(sizeof(entry));
-    if (!new_entry) /* Checks if memory allocation was successful */
-    {
-        printf("ERROR: Memory allocation failed (entry_pending)\n");
-        exit(1);
-    }
-
-    /* Add the label to the entry list */
-    strcpy(new_entry->label, label_name);
-    new_entry->next = table->entry_list;
-    table->entry_list = new_entry;
-}
-
 /**
  * Adds a new label with address and type to the assembler table.
  *
@@ -944,18 +919,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
                 (*error_count)++;
                 return;
             }
-            else
-            {
-                /* Updates the type to Entry */
-                if (type == ENTRY)
-                {
-                    existing->type = ENTRY;
-                }
-
-                return;
-            }
         }
-
         existing = existing->next;
     }
 
@@ -1221,6 +1185,35 @@ char * update_ic(char *line, int i, const char *commands[], int com_len,
     return NULL;
 }
 
+void add_entry_addresses(assembler_table *table)
+{
+    label *entry = table->label_list;
+
+    while (entry != NULL)
+    {
+        if (entry->type == ENTRY)
+        {
+            label *defined = table->label_list;
+            while (defined != NULL)
+            {
+                if (strcmp(entry->name, defined->name) == 0 && defined != entry && defined->type != ENTRY)
+                {
+                    entry->address = defined->address;
+                    break;
+                }
+                defined = defined->next;
+            }
+
+            if (defined == NULL)
+            {
+                printf("WARNING: .entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
+            }
+        }
+
+        entry = entry->next;
+    }
+}
+
 /**
  * Validates the given line from the '.am' file.
  *
@@ -1289,6 +1282,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* If there is no directive nor command, it will do nothing */
             else
             {
+                printf("Nothing to do in line: %s\n", line);
                 return;
             }
         }
@@ -1351,7 +1345,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
                 extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
-                encode_command(table, check_command_value(command_name), src, dest, label_name);
+                encode_command(table, check_command_value(command_name), src, dest, NULL);
 
                 return;
             }

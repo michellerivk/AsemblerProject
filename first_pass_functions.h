@@ -121,7 +121,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
  *
  * @return true (1) if the label exists, false (0) otherwise.
  */
-int check_for_label(label *list, char *label);
+int check_for_label_with_same_type(label *list, char *label_name, int type);
 
 /**
  * @brief Checks if the given string is a valid number.
@@ -348,3 +348,6 @@ bool is_register(char *operand);
  * @return true (1) if the operand is a valid label, false (0) otherwise.
  */
 bool is_label(char *operand);
+
+
+void add_entry_addresses(assembler_table *table);
