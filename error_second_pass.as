@@ -1,0 +1,8 @@
+.entry MISSINGDEFINITION
+.entry DEFINEEXTERN   
+.extern DEFINEEXTERN
+.entry VALID
+VALID: mov r2,r1
+mov r2 , DIDNTDEFINElabelAsOperand
+LABELDEFINED: mov r2 , r1
+LABELDEFINED: mov r2 , r1 

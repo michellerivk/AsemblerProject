@@ -1,5 +1,6 @@
 #include "assembler.h"
 
+
 void trans_base_four(int number , char  dest[]){
     int i , curr_two_bits ,j;
    
@@ -22,9 +23,9 @@ void object_file (assembler_table * assembler){
     add_suffix(file_object, assembler-> source_file, ".ob");
     fp_ob = fopen(file_object, "w"); 
 
-    trans_base_four(assembler->instruction_counter - 100 , ic_dest);
+    
     trans_base_four(assembler->data_counter ,dc_dest );
-    fprintf( fp_ob, "%s\t%s\n" , ic_dest , dc_dest);
+    fprintf( fp_ob, "\t%s\t%s\n" , ic_dest , dc_dest);
     temp_command = assembler->code_section;
     while(temp_command != NULL){
         trans_base_four(temp_command->address , dest_addr);
@@ -90,8 +91,9 @@ void ent_file(assembler_table * assembler){
 
     temp_label = assembler->label_list;
     while(temp_label != NULL){
-        file_empty = false;
+        
         if(temp_label->type ==  ENTRY){
+            file_empty = false;
             trans_base_four(temp_label->address , dest_label_addr);
             fprintf( fp_ent, "%s\t%s\n" , temp_label->name , dest_label_addr );
            

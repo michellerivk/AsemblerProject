@@ -100,6 +100,9 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
 /* Adds external label to table */
 void add_external_label_to_table(assembler_table *table, char *name, int *error_count);
 
+/* Adds an entry to a list until the entry appears in the file */
+void add_entry_to_list(assembler_table *table, const char *label_name);
+
 /**
  * @brief Adds a new label with address and type to the assembler table.
  *
@@ -118,7 +121,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
  *
  * @return true (1) if the label exists, false (0) otherwise.
  */
-int check_for_label(label *list, char *label);
+int check_for_label_with_same_type(label *list, char *label_name, int type);
 
 /**
  * @brief Checks if the given string is a valid number.
@@ -345,3 +348,6 @@ bool is_register(char *operand);
  * @return true (1) if the operand is a valid label, false (0) otherwise.
  */
 bool is_label(char *operand);
+
+
+void add_entry_addresses(assembler_table *table);

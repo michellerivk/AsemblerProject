@@ -684,8 +684,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         int type =  ENTRY;
 
         if (strstr(line, ".entry"))
-        {       
-            /*           
+        {                 
             char *input = strstr(line, ".entry");
 
             if (input != NULL)
@@ -704,7 +703,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
                 add_label_to_table(table, lbl, type, error_count);
             }
-                */
         }
         /* ###############Second Pass################### */
     }    
@@ -900,6 +898,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
+    label *existing = table->label_list;
 
     /* Checks if memory allocation failed */
     if (!new_label) 
@@ -908,12 +907,20 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
         exit(1);
     }
 
-    /* Checks if the label exists already in the table */
-    if (check_for_label(table->label_list, lbl)) 
+    /* Checks if there are labels in the table already */
+    while (existing != NULL)
     {
-        printf("ERROR: The label: %s exists already in the table.\n", lbl);
-        (*error_count)++;
-        return; 
+        if (strcmp(existing->name, lbl) == 0)
+        {
+            /* Checks if 2 labels have the same name and type */
+            if (existing->type == type)
+            {
+                printf("ERROR: The label '%s' already exists with the same type.\n", lbl);
+                (*error_count)++;
+                return;
+            }
+        }
+        existing = existing->next;
     }
 
     /* Inserts the name of the label into the table */
@@ -1178,6 +1185,35 @@ char * update_ic(char *line, int i, const char *commands[], int com_len,
     return NULL;
 }
 
+void add_entry_addresses(assembler_table *table)
+{
+    label *entry = table->label_list;
+
+    while (entry != NULL)
+    {
+        if (entry->type == ENTRY)
+        {
+            label *defined = table->label_list;
+            while (defined != NULL)
+            {
+                if (strcmp(entry->name, defined->name) == 0 && defined != entry && defined->type != ENTRY)
+                {
+                    entry->address = defined->address;
+                    break;
+                }
+                defined = defined->next;
+            }
+
+            if (defined == NULL)
+            {
+                printf("WARNING: .entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
+            }
+        }
+
+        entry = entry->next;
+    }
+}
+
 /**
  * Validates the given line from the '.am' file.
  *
@@ -1309,7 +1345,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
                 extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
-                encode_command(table, check_command_value(command_name), src, dest, label_name);
+                encode_command(table, check_command_value(command_name), src, dest, NULL);
 
                 return;
             }
