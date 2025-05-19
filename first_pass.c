@@ -5,7 +5,7 @@
 /**
  * Executes the first pass over the processed assembly source file (file_name.am).
  *
- * This function processes the `.am` file line by line.
+ * This function processes the '.am' file line by line.
  * It builds the assembler table by recording label names, their memory addresses,
  * and the type of input they have, while also announcing errors.
  *
@@ -18,7 +18,7 @@
  * But will not stop the program immediately, 
  * only after the passed has finished scanning the file.
  *
- * @param file  The name of the `.am` file to read.
+ * @param file  The name of the '.am' file to read.
  * @param table The assembler_table structure.
  *
  * @return 1 if the pass completed successfully without errors, and a 0 if there were any errors.
@@ -63,7 +63,6 @@ int first_pass(const char *file, assembler_table *table)
     fclose(am);
     free(full_file);
 
-    /*print_assembler_table(table);*/ /* ########debugging####### */
 
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
@@ -72,10 +71,9 @@ int first_pass(const char *file, assembler_table *table)
         return(0);
     }
 
-    printf("The were no errors.\n\n");
+    print_assembler_table(table); /* ########debugging####### */
 
-    print_assembler_table(table);
-    
+    printf("The were no errors.\n\n");
 
     /* If there were no errors returns 1. */
     return 1;
