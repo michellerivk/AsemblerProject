@@ -1,8 +1,8 @@
 ;
 .entryLOOP
 .entryLENGTH
-MAIN:movM1[r2][r7],W
-addr2,STR
+.externL3
+.externW
 LOOP:jmpW
 prn#-5
 subr1,r4

@@ -3,7 +3,7 @@
 bool labels_check(assembler_table **assembler) {
     label *ptr_label1 = (*assembler)->label_list;
     label *ptr_label2;
-    bool find_entry_definition ,  error = true;
+    bool find_entry_definition ,find_definition_twice ,  error = true;
 
     while (ptr_label1 != NULL) {
         
@@ -26,6 +26,27 @@ bool labels_check(assembler_table **assembler) {
             }
         }
 
+        if (ptr_label1->type != ENTRY) {
+            ptr_label2 = ptr_label1->next;
+            find_definition_twice = false;
+            while (ptr_label2 != NULL) {
+                if (strcmp(ptr_label2->name, ptr_label1->name) == 0 &&
+                    ptr_label2->type != ENTRY) {
+                    find_definition_twice = true;
+                    break;
+                }
+                ptr_label2 = ptr_label2->next;
+            }
+
+            if(find_definition_twice == true){
+                printf("Error: Label is already defined , the label name is %s \n",ptr_label1->name);
+                error = false;
+            }
+        }
+        
+
+   
+
         ptr_label1 = ptr_label1->next;
     }
 
@@ -38,7 +59,11 @@ bool complement_label_word(assembler_table ** assembler,  command * ptr_cmd){
     label * ptr_label = (*assembler)->label_list;
     while(ptr_label != NULL){
         if(strcmp(ptr_cmd->referenced_label ,ptr_label->name ) == 0 ){
-            ptr_cmd->word.value = move_bits(ptr_label->address ,  SHIFT_AFTER_ARE) |  R;
+            if(ptr_label->type == EXTERNAL){
+                ptr_cmd->word.value = E;
+            }else{
+                ptr_cmd->word.value = move_bits(ptr_label->address ,  SHIFT_AFTER_ARE) |  R;
+            }
             return true;
         }
           
@@ -50,8 +75,11 @@ bool complement_label_word(assembler_table ** assembler,  command * ptr_cmd){
 bool complement_ext_word(assembler_table ** assembler,  command * ptr_cmd){
     external_label * ptr_label_ex = (*assembler)->external_list;
     while(ptr_label_ex != NULL){
+        printf("CMP -%s- WITH -%s- \n",ptr_cmd->referenced_label ,ptr_label_ex->label );
         if(strcmp(ptr_cmd->referenced_label ,ptr_label_ex->label ) == 0 ){
+            
             ptr_cmd->word.value = E;
+            
             add_to_external_usage( &(ptr_label_ex->usage_list) , ptr_cmd->address);
             return true;
         }
@@ -104,7 +132,7 @@ bool second_pass(assembler_table ** assembler){
             
             error = complement_label_word ( assembler,  ptr_cmd);
 
-            if(error == true){
+            if(error != true){
                 error = complement_ext_word(assembler, ptr_cmd);
             }
 
@@ -122,6 +150,3 @@ bool second_pass(assembler_table ** assembler){
 
     return final_error;
 }
-  
-    
-

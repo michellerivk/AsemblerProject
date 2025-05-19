@@ -97,6 +97,9 @@ unsigned short command_to_short(command_parts *parts);
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl);
 
+/* Adds external label to table */
+void add_external_label_to_table(assembler_table *table, char *name, int *error_count);
+
 /**
  * @brief Adds a new label with address and type to the assembler table.
  *

@@ -124,6 +124,15 @@ void print_macros(const macro *macro_list) {
     }
 }
 
+
+void print_binary_10bit(unsigned int value) {
+    int i;
+    value &= 0x3FF; /* Mask to 10 bits */
+    for (i = 9; i >= 0; i--) {
+        putchar((value & (1 << i)) ? '1' : '0');
+    }
+}
+
 void print_assembler_table(const assembler_table *table) {
     const label *lbl;
     const external_label *ext;
@@ -168,7 +177,9 @@ void print_assembler_table(const assembler_table *table) {
     printf("\n--- Data Section ---\n");
     d = table->data_section;
     while (d != NULL) {
-        printf("Address: %d | Word: 0x%04X\n", d->address, d->word.value);
+        printf("Address: %d | Word (bin): ", d->address);
+        print_binary_10bit(d->word.value);
+        printf("\n");
         d = d->next;
     }
 
@@ -176,7 +187,8 @@ void print_assembler_table(const assembler_table *table) {
     printf("\n--- Code Section ---\n");
     cmd = table->code_section;
     while (cmd != NULL) {
-        printf("Address: %d | Word: 0x%04X", cmd->address, cmd->word.value);
+        printf("Address: %d | Word (bin): ", cmd->address);
+        print_binary_10bit(cmd->word.value);
         if (cmd->referenced_label[0] != '\0') {
             printf(" | Refers to: %s", cmd->referenced_label);
         }
