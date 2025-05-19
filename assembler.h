@@ -71,6 +71,11 @@ typedef struct label {
     struct label *next;
 } label;
 
+typedef struct entry {
+    char label[MAX_LABEL_LENGTH];
+    struct entry *next;
+} entry;
+
 typedef struct code_word {
     unsigned short value;
 } code_word;
@@ -106,6 +111,7 @@ typedef struct assembler_table {
     char assembly_file[MAX_LABEL_LENGTH];
     int instruction_counter;
     int data_counter;
+    entry *entry_list;
 
 } assembler_table;
 

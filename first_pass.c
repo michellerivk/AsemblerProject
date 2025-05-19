@@ -31,7 +31,8 @@ int first_pass(const char *file, assembler_table *table)
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
-    bool label_flag = false;
+    bool label_flag = false; /* A flag to check if there is a label */
+    entry *e = NULL; /* A pointer to the entry list */
 
     /* 0-ing the table */
     table->instruction_counter = 100;
@@ -58,6 +59,31 @@ int first_pass(const char *file, assembler_table *table)
         line_number++;
         check_line(line, line_number ,table, &error_count, label_flag);
     }
+
+
+    e = table->entry_list;
+    while (e) 
+    {
+        label *lbl = table->label_list;
+        bool found = false;
+        while (lbl) 
+        {
+            if (strcmp(lbl->name, e->label) == 0) 
+            {
+                lbl->type = ENTRY;
+                found = true;
+                break;
+            }
+            lbl = lbl->next;
+        }
+
+        if (!found) {
+            printf("ERROR: .entry label '%s' was not defined in the file.\n", e->label);
+        }
+
+        e = e->next;
+    }
+
 
     /* Closes files and frees memory */
     fclose(am);

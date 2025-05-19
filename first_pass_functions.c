@@ -681,29 +681,38 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     }    
     else if (strcmp(directive, ".entry") == 0)
     {
-        int type =  ENTRY;
+        char *input = strstr(line, ".entry");
 
-        if (strstr(line, ".entry"))
-        {                 
-            char *input = strstr(line, ".entry");
+        if (input != NULL)
+        {
+            label *new_lbl = table->label_list;
+            char lbl[MAX_LABEL_LENGTH];
+            int j = 0;
+            int i = (int)(input - line);
+            i += 6;
 
-            if (input != NULL)
+            while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
             {
-                char lbl[MAX_LABEL_LENGTH];
-                int j = 0;
-                int i = (int)(input - line);
-                i += 6;
-
-                while (line[i] != '\0' && line[i] != ' ' && line[i] != '\n') 
-                {
-                    lbl[j++] = line[i++];
-                }
-
-                lbl[j] = '\0';
-
-                add_label_to_table(table, lbl, type, error_count);
+                lbl[j++] = line[i++];
             }
-        }
+
+            lbl[j] = '\0';
+
+            /* Checks if label exists */
+            while (new_lbl != NULL) 
+            {
+                if (strcmp(new_lbl->name, lbl) == 0) 
+                {
+                    new_lbl->type = ENTRY;
+                    return;
+                }
+                new_lbl = new_lbl->next;
+            }
+
+            /* Add the entry to the entry list */
+            add_entry_to_list(table, lbl);
+    }
+
         /* ###############Second Pass################### */
     }    
     else if (strcmp(directive, ".extern") == 0)
@@ -885,6 +894,22 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
     /* Puts it in the head */
     lbl->next = table->external_list;
     table->external_list = lbl;
+}
+
+/* Adds an entry to a list until the entry appears in the file */
+void add_entry_to_list(assembler_table *table, const char *label_name)
+{
+    entry *new_entry = malloc(sizeof(entry));
+    if (!new_entry) /* Checks if memory allocation was successful */
+    {
+        printf("ERROR: Memory allocation failed (entry_pending)\n");
+        exit(1);
+    }
+
+    /* Add the label to the entry list */
+    strcpy(new_entry->label, label_name);
+    new_entry->next = table->entry_list;
+    table->entry_list = new_entry;
 }
 
 /**
@@ -1264,7 +1289,6 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* If there is no directive nor command, it will do nothing */
             else
             {
-                printf("Nothing to do in line: %s\n", line);
                 return;
             }
         }

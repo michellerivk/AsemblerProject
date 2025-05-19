@@ -100,6 +100,9 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
 /* Adds external label to table */
 void add_external_label_to_table(assembler_table *table, char *name, int *error_count);
 
+/* Adds an entry to a list until the entry appears in the file */
+void add_entry_to_list(assembler_table *table, const char *label_name);
+
 /**
  * @brief Adds a new label with address and type to the assembler table.
  *
