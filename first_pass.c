@@ -59,7 +59,7 @@ int first_pass(const char *file, assembler_table *table)
         check_line(line, line_number ,table, &error_count, label_flag);
     }
 
-    add_entry_addresses(table);
+    add_entry_addresses(table, &error_count);
 
     /* Closes files and frees memory */
     fclose(am);

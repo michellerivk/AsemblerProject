@@ -350,4 +350,4 @@ bool is_register(char *operand);
 bool is_label(char *operand);
 
 
-void add_entry_addresses(assembler_table *table);
+void add_entry_addresses(assembler_table *table, int *error_count);
