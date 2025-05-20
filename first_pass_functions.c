@@ -42,7 +42,7 @@ unsigned short build_matrix_reg_word(const char *op)
     if (right[1] == 'r' && isdigit(right[2]))
         r2 = right[2] - '0';
 
-    return (r1 << 8) | (r2 << 2);           
+    return (r1 << 6) | (r2 << 2);           
 }
 
 /**
@@ -205,20 +205,6 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
     new_command->word.value = word_value;
     new_command->address = table->instruction_counter;
 
-    /* Checks if the label is a .extern, and decides if it should be added to the code table. */
-    /*
-    ext = table->external_list;
-    while (ext) 
-    {
-        if (lbl != NULL && strcmp(ext->label, lbl) == 0) 
-        {
-            is_external = true;
-            break;
-        }
-        ext = ext->next;
-    }*/
-
-
     /* Gets base label */
     if (lbl != NULL && lbl[0] != '\0' ) 
     {
@@ -325,7 +311,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
     /* Checks is both operands are registers */
     if (src_mode == 3 && dest_mode == 3) 
     {
-        unsigned short reg_word = (atoi(src_oper + 1)  << 8) | (atoi(dest_oper + 1) << 2); 
+        unsigned short reg_word = (atoi(src_oper + 1)  << 6) | (atoi(dest_oper + 1) << 2); 
         create_and_add_command(table, reg_word, NULL);
         return;
     }
@@ -354,7 +340,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
 
             case 3: /* Register */
             {
-                unsigned short reg_word = (atoi(src_oper + 1) << 8);
+                unsigned short reg_word = (atoi(src_oper + 1) << 6);
                 create_and_add_command(table, reg_word, NULL);
                 break;
             }
@@ -389,6 +375,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
             }
         }
     }
+    printf("Encoding %s,%s → opcode=%d src=%d dest=%d\n", src_oper, dest_oper, opcode, src_mode, dest_mode);
 }
 
 /**
