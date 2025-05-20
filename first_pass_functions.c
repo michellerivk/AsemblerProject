@@ -4,6 +4,22 @@
 #include <ctype.h>
 #include "first_pass_functions.h"
 
+/* Removes the symbol ';' from the line */
+void remove_comment_symbol(char *line) 
+{
+    int i = 0;
+    int j = 0;
+
+    while (line[i] != '\0') 
+    {
+        if (line[i] != ';') 
+        {
+            line[j++] = line[i];
+        }
+        i++;
+    }
+    line[j] = '\0';
+}
 
 /**
  * Builds the extra word that encodes the two index-registers of a matrix operand.
@@ -1252,6 +1268,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     char command_name[MAX_LINE_LENGTH];
     char src[MAX_LINE_LENGTH] = "", dest[MAX_LINE_LENGTH] = ""; 
     int i = 0;
+
+    remove_comment_symbol(line);
 
     /* The line doesn't have a label */
     if (!strchr(line, ':')) 
