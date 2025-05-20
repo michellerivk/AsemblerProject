@@ -1,6 +1,8 @@
 .entry MISSINGDEFINITION
 .entry DEFINEEXTERN   
 .extern DEFINEEXTERN
+
+DEFINEEXTERN: data 5
 .entry VALID
 VALID: mov r2,r1
 mov r2 , DIDNTDEFINElabelAsOperand

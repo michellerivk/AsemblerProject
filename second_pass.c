@@ -75,7 +75,6 @@ bool complement_label_word(assembler_table ** assembler,  command * ptr_cmd){
 bool complement_ext_word(assembler_table ** assembler,  command * ptr_cmd){
     external_label * ptr_label_ex = (*assembler)->external_list;
     while(ptr_label_ex != NULL){
-        printf("CMP -%s- WITH -%s- \n",ptr_cmd->referenced_label ,ptr_label_ex->label );
         if(strcmp(ptr_cmd->referenced_label ,ptr_label_ex->label ) == 0 ){
             
             ptr_cmd->word.value = E;
@@ -97,9 +96,10 @@ bool check_if_label_defined_as_extern(assembler_table ** assembler){
         ptr_label = (*assembler)->label_list;
         didnt_find_dou_definition = true;
         while(ptr_label != NULL){
+
             if(strcmp(ptr_label->name , ptr_label_ext->label) == 0){
                 didnt_find_dou_definition = false;
-                break;
+
             }
     
             ptr_label = ptr_label->next;
@@ -127,10 +127,17 @@ bool second_pass(assembler_table ** assembler){
         error = true;
     }
 
+    error = check_if_label_defined_as_extern(assembler);
+
+    if(error == false){
+        final_error = false;
+        error = true;
+    }
+
     while(ptr_cmd != NULL){
         if (ptr_cmd->referenced_label[0] != '\0'){
             
-            error = complement_label_word ( assembler,  ptr_cmd);
+            error = complement_label_word( assembler,  ptr_cmd);
 
             if(error != true){
                 error = complement_ext_word(assembler, ptr_cmd);

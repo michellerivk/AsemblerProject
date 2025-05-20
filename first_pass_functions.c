@@ -177,10 +177,8 @@ unsigned short command_to_short(command_parts *parts)
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl) 
 {
-    bool is_external = false;
-    external_label *ext = NULL;
+    /*external_label *ext = NULL;*/
     command *new_command = (command *)malloc(sizeof(command));
-
     /* Checks if the allocation was successful */
     if (!new_command) 
     {
@@ -192,6 +190,7 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
     new_command->address = table->instruction_counter;
 
     /* Checks if the label is a .extern, and decides if it should be added to the code table. */
+    /*
     ext = table->external_list;
     while (ext) 
     {
@@ -201,11 +200,11 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
             break;
         }
         ext = ext->next;
-    }
+    }*/
 
 
     /* Gets base label */
-    if (lbl != NULL && lbl[0] != '\0' && !is_external) 
+    if (lbl != NULL && lbl[0] != '\0' ) 
     {
         /* Checks if it's a matrix operand */
         if (strchr(lbl, '[')) 
@@ -858,7 +857,9 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
 void add_external_label_to_table(assembler_table *table, char *name, int *error_count)
 {
     /* Checks if there is already a label with this name in the list */
+    
     external_label *lbl = table->external_list;
+    
     while (lbl) 
     {
         if (strcmp(lbl->label, name) == 0) 
@@ -898,7 +899,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
-    label *existing = table->label_list;
+    /*label *existing = table->label_list;*/
 
     /* Checks if memory allocation failed */
     if (!new_label) 
@@ -908,11 +909,12 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     }
 
     /* Checks if there are labels in the table already */
+    /*
     while (existing != NULL)
     {
         if (strcmp(existing->name, lbl) == 0)
         {
-            /* Checks if 2 labels have the same name and type */
+             Checks if 2 labels have the same name and type 
             if (existing->type == type)
             {
                 printf("ERROR: The label '%s' already exists with the same type.\n", lbl);
@@ -921,7 +923,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
             }
         }
         existing = existing->next;
-    }
+    }*/
 
     /* Inserts the name of the label into the table */
     strcpy(new_label->name, lbl);
@@ -1205,12 +1207,13 @@ void add_entry_addresses(assembler_table *table, int *error_count)
                 defined = defined->next;
             }
 
+            /*
             if (defined == NULL)
             {
                 printf("ERROR: entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
                 (*error_count)++; 
                 return;
-            }
+            }*/
         }
 
         entry = entry->next;
