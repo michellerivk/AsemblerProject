@@ -29,9 +29,17 @@ int main(int argc , char ** argv){
             return 1;
         }
 
+        puts("=============First Pass Table:==================");
+        print_assembler_table(assembler); /* ########debugging####### */
+
+        puts("==========Start second pass============");
+
         if(second_pass(&assembler) == false){
             return false;
         }
+
+        puts("=============Second Pass Table:==================");
+        print_assembler_table(assembler);
 
         translation_unit(assembler);
         

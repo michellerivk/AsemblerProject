@@ -3,7 +3,7 @@
 .entryLENGTH
 .externL3
 .externW
-MAIN:movM1[r2][r7],W
+MAIN:movM1[r2][r7],W;
 addr2,STR
 LOOP:jmpW
 prn#-5
