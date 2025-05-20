@@ -807,12 +807,12 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
 
     while (line[i] && line[i] != ':') 
     {
-        (i)++;
+        i++;
     }
 
     if (line[i] == ':') 
     {
-        (i)++;
+        i++;
     }
 
     /* Checks if the next words matches a directive */
