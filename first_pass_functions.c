@@ -375,7 +375,6 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
             }
         }
     }
-    printf("Encoding %s,%s → opcode=%d src=%d dest=%d\n", src_oper, dest_oper, opcode, src_mode, dest_mode);
 }
 
 /**
@@ -1314,6 +1313,8 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
             if (good_label == false)
             {
+                printf("There is no command/directive in line: %s\n", line);
+                (*error_count)++;
                 return;
             }
             
