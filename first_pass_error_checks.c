@@ -1,6 +1,8 @@
 #include "first_pass_functions.h"
 #include <string.h>
 
+/* ############################### Error checks for the given line ############################### */
+
 
 /**
  * Checks if the operations in the given command in the line are correct,
