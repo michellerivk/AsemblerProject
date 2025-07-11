@@ -968,7 +968,7 @@ char *get_label(char *line, int i)
     /* Returns an error if memory allocation fails */
     if (!label) 
     {
-        fprintf(stderr, "ERROR: Out of memory in get_label()\n");
+        printf("ERROR: Out of memory in get_label()\n");
         exit(1);
     }
 
