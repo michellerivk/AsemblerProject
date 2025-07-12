@@ -1,22 +1,130 @@
 #include "assembler.h"
 
 
+/* Free a linked list of data nodes */
+void free_data_section(data *head) {
+    data *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of command nodes */
+void free_code_section(command *head) {
+    command *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of label nodes */
+void free_label_list(label *head) {
+    label *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of external_usage nodes */
+void free_external_usage_list(external_usage *head) {
+    external_usage *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of external_label nodes, including their usage lists */
+void free_external_list(external_label *head) {
+    external_label *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free_external_usage_list(tmp->usage_list);
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of macro_content nodes */
+void free_macro_content_list(macro_content *head) {
+    macro_content *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* Free a linked list of macro nodes, including their content */
+void free_macro_list(macro *head) {
+    macro *tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
+        free_macro_content_list(tmp->content);
+        free(tmp);
+        tmp = NULL;
+    }
+}
+
+/* 
+ * Frees all dynamically allocated memory used by the assembler table.
+ */
+void free_assembler_table(assembler_table *table) {
+    if (!table) return;
+
+    /* Free each section of the table */
+    free_data_section(table->data_section);
+    free_code_section(table->code_section);
+    free_label_list(table->label_list);
+    free_external_list(table->external_list);
+    free_macro_list(table->macro_list);
+
+    /* Free the table struct itself */
+    free(table);
+    table = NULL;
+}
+
+
+/* 
+ * Shifts the bits of a given word to the left by a specified amount.
+ */
 unsigned short move_bits(unsigned short word , unsigned short move){
     return word << move;
 }
 
+/* 
+ * Allocates memory safely. If allocation fails, an error is printed and program exits.
+ */
 void * generic_malloc(long size){
     void * ptr = malloc(size);
-    /*Check if memory allocation failed*/
+    /* Check if memory allocation failed */
     if(ptr == NULL){ 
         errors_table(MALLOC_FAILED , -1);
-        exit(1);/* Exit the program if memory allocation fails */
+        exit(1); /* Exit the program if memory allocation fails */
     }    
-    return ptr; /* Return void pointer to allocated memory */
+    return ptr; /* Return pointer to allocated memory */
 }
 
+/* 
+ * Opens a file safely. Exits the program if file cannot be opened.
+ */
 FILE * safe_fopen(char * name , char * mode){
     FILE *fp = fopen(name, mode);
+    /* If fopen failed, report and exit */
     if(fp == NULL){
         errors_table(FAILED_TO_OPEN_FILE , -1);
         exit(1);
@@ -24,35 +132,40 @@ FILE * safe_fopen(char * name , char * mode){
     return fp;
 }
 
-
-
+/* 
+ * Appends a suffix to a file name to create a new file name.
+ */
 void add_suffix(char *dest, const char *file_name, const char *ending) {
 
-    /* Start by copying file_name into dest */
+    /* Copy base file name to destination */
     strcpy(dest, file_name);
 
-    /* Append ending */
+    /* Append desired ending to destination */
     strcat(dest, ending);
 }
 
-
-
+/* 
+ * Searches for a macro by name in a linked list of macros.
+ */
 macro * find_macro(macro * head , char * name){
     char temp[MAX_LINE_LENGTH];
-    memset(temp , '\0' , MAX_LINE_LENGTH);
-    extract_token(temp , name , '\n');
+    memset(temp , '\0' , MAX_LINE_LENGTH); /* Clear temp buffer */
+
+    extract_token(temp , name , '\n'); /* Remove trailing newline */
     while(head != NULL){
+        /* Compare macro name */
         if(strcmp(head->macro_name , temp) == 0){
             return head;
         }
-
         head = head->next;
     }
 
-    return NULL;
+    return NULL; /* Not found */
 }
 
-
+/* 
+ * Prints an error message corresponding to a given error code.
+ */
 void errors_table(ERRORS error_code, int line_counter) {
     switch (error_code) {
         case FILE_NAME_EXCEED_MAXIMUM:
@@ -85,16 +198,22 @@ void errors_table(ERRORS error_code, int line_counter) {
         case MALLOC_FAILED:
             printf("Malloc fail.\n");
             break;
+        case LINE_LENGTH_EXCEED_MAXIMUM:
+            printf("Line length is over then 80 chars .\n");
+            break;
+            
         default:
             printf("Error on line %d: Unknown error code.\n", line_counter);
             break;
     }
 }
 
-/* Safe remove function */
+/* 
+ * Safely removes a file by name. If failed, prints an error and exits.
+ */
 void safe_remove(const char *filename) {
     if (filename == NULL || strlen(filename) == 0) {
-        return; 
+        return; /* Do nothing if filename is invalid */
     }
 
     if (remove(filename) != 0) {
@@ -103,6 +222,9 @@ void safe_remove(const char *filename) {
     }
 }
 
+/* 
+ * Prints all macros and their contents.
+ */
 void print_macros(const macro *macro_list) {
     const macro *current_macro = macro_list;
     const macro_content *content = NULL;
@@ -124,15 +246,20 @@ void print_macros(const macro *macro_list) {
     }
 }
 
-
+/* 
+ * Prints a 10-bit binary representation of a value.
+ */
 void print_binary_10bit(unsigned int value) {
     int i;
-    value &= 0x3FF; /* Mask to 10 bits */
+    value &= 0x3FF; /* Mask value to 10 bits */
     for (i = 9; i >= 0; i--) {
         putchar((value & (1 << i)) ? '1' : '0');
     }
 }
 
+/* 
+ * Prints the full contents of an assembler table.
+ */
 void print_assembler_table(const assembler_table *table) {
     const label *lbl;
     const external_label *ext;
@@ -152,7 +279,7 @@ void print_assembler_table(const assembler_table *table) {
     printf("Instruction Counter (IC): %d\n", table->instruction_counter);
     printf("Data Counter (DC): %d\n\n", table->data_counter);
 
-    /* Print labels */
+    /* Print labels list */
     printf("--- Labels ---\n");
     lbl = table->label_list;
     while (lbl != NULL) {
@@ -196,12 +323,7 @@ void print_assembler_table(const assembler_table *table) {
         cmd = cmd->next;
     }
 
-    /* Print macros */
+    /* Print macros list */
     printf("\n--- Macros ---\n");
     print_macros(table->macro_list);
 }
-
-
-
-
-
