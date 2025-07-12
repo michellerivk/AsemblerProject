@@ -1,165 +1,230 @@
 #include "assembler.h"
 
-
-
-void remove_white_spaces(char dest[MAX_LINE_LENGTH] , char * line){
-    int i , j = 0;
+/*
+  This function removes all spaces and tabs from the given line,
+  and also handles comment lines starting with ';' by truncating them.
+  The cleaned result is stored in 'dest'.
+*/
+void remove_white_spaces(char dest[MAX_LINE_LENGTH], char *line) {
+    int i, j = 0;
     char temp[MAX_LINE_LENGTH];
-    memset(temp , '\0' , MAX_LINE_LENGTH);
 
-    for(i = 0 ; i < strlen(line) ; i++){
-        if(line[i] != ' ' && line[i] != '\t'){
+    /* Initialize the temp buffer with null characters */
+    memset(temp, '\0', MAX_LINE_LENGTH);
+
+    /* Go over the input line character by character */
+    for (i = 0; i < strlen(line); i++) {
+        /* Copy only non-whitespace characters */
+        if (line[i] != ' ' && line[i] != '\t') {
             temp[j] = line[i];
             j++;
         }
 
-        if(line[i] == ';'){
+        /* If a comment starts, terminate the line with newline and break */
+        if (line[i] == ';') {
             temp[j] = '\n';
             j++;
-            i = strlen(line);
+            i = strlen(line); /* exit loop */
         }
-        
     }
 
     temp[j] = '\0';
-
-    strcpy(dest , temp);
-
-
+    /* Copy cleaned result to destination */
+    strcpy(dest, temp);
 }
 
+/*
+  This function extracts a token from the input 'line' until the given delimiter.
+  The extracted token is copied into 'dest'. Returns the index after the delimiter.
+  If the delimiter is not found, returns 0.
+*/
+int extract_token(char dest[MAX_LINE_LENGTH], char *line, char delimiter) {
+    int i, found = 0;
 
-int extract_token(char dest[MAX_LINE_LENGTH] , char * line , char delimeter){
-    int i , found  = 0;
-
-    for(i = 0 ; i < strlen(line) && found == 0 ; i++){
-        if(line[i] != delimeter){
+    /* Copy characters to dest until delimiter is found */
+    for (i = 0; i < strlen(line) && found == 0; i++) {
+        if (line[i] != delimiter) {
             dest[i] = line[i];
-        }
-        else{
+        } else {
             found = 1;
         }
     }
 
     dest[i] = '\0';
 
-    if(found == 1){
-        return i;
-    }
-
-    return 0;
-
+    /* If delimiter was found, return its position + 1 */
+    return found ? i : 0;
 }
 
-void files_initialize(assembler_table **assembler, FILE **fp_as, FILE **fp_am, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH])
-{    
-    add_suffix( (*assembler)->assembly_file , (*assembler)->source_file , ".as");
-    add_suffix((*assembler)->macro_expanded_file , (*assembler)->source_file, ".am");
-    
+/*
+  Initializes file paths and file pointers used for pre-processing.
+  Adds ".as" and ".am" suffixes to filenames and opens the files accordingly.
+  Also clears the buffers for line and macro name.
+*/
+void files_initialize(assembler_table **assembler, FILE **fp_as, FILE **fp_am,
+                      char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH]) {
+
+    /* Generate full path for ".as" and ".am" files */
+    add_suffix((*assembler)->assembly_file, (*assembler)->source_file, ".as");
+    add_suffix((*assembler)->macro_expanded_file, (*assembler)->source_file, ".am");
+
+    /* Open the input (.as) and output (.am) files */
     *fp_as = safe_fopen((*assembler)->assembly_file, "r");
     *fp_am = safe_fopen((*assembler)->macro_expanded_file, "w");
-    
+
+    /* Clear line and macro_name buffers */
     memset(line, '\0', MAX_LINE_LENGTH);
     memset(macro_name, '\0', MAX_LINE_LENGTH);
-    
 }
 
-bool macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH], char macro_name[MAX_LINE_LENGTH], FILE *fp_as, macro_content **content , int * line_counter)
-{
-        memset(macro_name , '\0' , MAX_LINE_LENGTH);
-        extract_token(macro_name ,  line + strlen("mcro") , '\n');
+/*
+  Handles a macro definition block. Reads lines from the assembly file
+  starting after "mcro" until "mcroend" is found. Validates the macro name,
+  stores the lines in a macro_content list, and adds it to the macro table.
+  Returns false if any error occurs.
+*/
+bool macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH],
+                     char macro_name[MAX_LINE_LENGTH], FILE *fp_as,
+                     macro_content **content, int *line_counter) {
 
-        if(macro_name_examine(macro_name ,  *line_counter , (*assembler)->macro_list) == false ){
+    /* Reset macro_name buffer */
+    memset(macro_name, '\0', MAX_LINE_LENGTH);
+
+    /* Extract the macro name from the line */
+    extract_token(macro_name, line + strlen("mcro"), '\n');
+
+    /* Validate macro name */
+    if (macro_name_examine(macro_name, *line_counter, (*assembler)->macro_list) == false) {
+        return false;
+    }
+
+    printf("macro_name: -%s- \n", macro_name);
+
+    /* Clear line buffer */
+    memset(line, '\0', MAX_LINE_LENGTH);
+
+    /* Read lines until we find "mcroend" */
+    while (fgets(line, MAX_LINE_LENGTH, fp_as) != NULL) {
+        remove_white_spaces(line, line); /* Clean line from whitespace */
+        printf("line %s", line);
+
+        /* Store line in macro content if not "mcroend" */
+        if (strncmp(line, "mcroend", strlen("mcroend")) != 0) {
+            add_to_content_list(&(*content), line);
+        } else {
+            break;
+        }
+
+        /* Prepare for next iteration */
+        memset(line, '\0', MAX_LINE_LENGTH);
+        (*line_counter)++;
+    }
+
+    remove_white_spaces(line, line);
+
+    /* Validate "mcroend" and ensure no text follows it */
+    if (strncmp(line, "mcroend", strlen("mcroend")) == 0) {
+        printf("Line inside %s ", line);
+        if (examine_macroend(line + strlen("mcroend"), *line_counter) == false) {
+            memset(line, '\0', MAX_LINE_LENGTH);
+            *content = NULL;
             return false;
         }
 
-        printf("macro_name: -%s- \n" , macro_name);
-        memset(line, '\0', MAX_LINE_LENGTH);
-        while(fgets(line, MAX_LINE_LENGTH , fp_as) != NULL ){
-            remove_white_spaces(line , line);
-            printf("line %s",line);
-            if(strncmp(line , "mcroend" , strlen("mcroend")) != 0){
-                add_to_content_list( &(*content) , line );
-            }else{
-                break;
+        /* Add macro to the macro list */
+        add_to_macro_list(&(*assembler)->macro_list, macro_name, *content);
+        *content = NULL; /* Reset content list */
+    }
 
-            }
-            memset(line, '\0', MAX_LINE_LENGTH);
-            (*line_counter)++;
-        }
-        remove_white_spaces(line , line);
-        if(strncmp(line , "mcroend" , strlen("mcroend")) == 0){
-            printf("Line inside %s ",line);
-            if(examine_macroend(line + strlen("mcroend") , *line_counter) == false){
-                memset(line, '\0', MAX_LINE_LENGTH);
-                *content = NULL;
-                return false;
-            }
-            add_to_macro_list(&(*assembler)->macro_list , macro_name , *content);
-            *content = NULL;
-        }
-        memset(macro_name , '\0' , MAX_LINE_LENGTH);
-        (*line_counter)++;
-    
-        return true;
+    /* Reset for next macro block */
+    memset(macro_name, '\0', MAX_LINE_LENGTH);
+    (*line_counter)++;
+
+    return true;
 }
 
-bool pre_proc(assembler_table ** assembler){
-    char  line[MAX_LINE_LENGTH] , macro_name[MAX_LINE_LENGTH];
-    macro  * macro_use = NULL;
-    macro_content * content = NULL;
-    FILE * fp_as , * fp_am;
-    int * line_counter = generic_malloc(sizeof(int));
-    bool error = true , final_error = true;
+/*
+  Main preprocessor function. Reads each line of the ".as" file,
+  handles macro definitions and macro usages, and writes the expanded
+  version to the ".am" file. In case of errors, deletes the output file.
+  Returns true if successful, false otherwise.
+*/
+bool pre_proc(assembler_table **assembler) {
+    char line[MAX_LINE_LENGTH], macro_name[MAX_LINE_LENGTH];
+    macro *macro_use = NULL;
+    macro_content *content = NULL;
+    FILE *fp_as, *fp_am;
+    int ch;
+
+    /* Counter for line number */
+    int *line_counter = generic_malloc(sizeof(int));
+    bool error = true, final_error = true;
+
+    /* Open files and initialize buffers */
+    files_initialize(assembler, &fp_as, &fp_am, line, macro_name);
+
     
-    files_initialize(assembler, &fp_as, &fp_am ,  line, macro_name);
-  
-
-    while(fgets(line, MAX_LINE_LENGTH , fp_as)){
+    /* Process each line in the assembly file */
+    while (fgets(line, MAX_LINE_LENGTH, fp_as)) {
         
-        remove_white_spaces(line , line);
+        size_t len = strlen(line);
+        /* Check if line is too long (buffer full, no '\n') */
+        if (len == MAX_LINE_LENGTH - 1 && line[len - 1] != '\n') {
+            errors_table(LINE_LENGTH_EXCEED_MAXIMUM, *line_counter);
+            final_error = false;
 
-        printf("line %d %s", *line_counter ,line );
+            /* Discard the rest of the long line*/
+            while ((ch = fgetc(fp_as)) != '\n' && ch != EOF);
+        }
+        remove_white_spaces(line, line);
+        printf("line %d %s", *line_counter, line);
 
-        if(strncmp(line , "mcro" , strlen("mcro")) == 0 && strncmp(line , "mcroend" , strlen("mcroend")) != 0){
+        /* Check for macro definition start */
+        if (strncmp(line, "mcro", strlen("mcro")) == 0 &&
+            strncmp(line, "mcroend", strlen("mcroend")) != 0) {
 
-            error = macro_trearment ( assembler, line, macro_name,  fp_as, &content , line_counter);
-            if(error == false){
+            error = macro_trearment(assembler, line, macro_name, fp_as, &content, line_counter);
+            if (error == false) {
                 final_error = false;
                 continue;
             }
         }
-        else if( (macro_use = find_macro((*assembler)->macro_list , line)) != NULL){
-            printf("MACRO USE NAME -%s-",macro_use->macro_name);
+
+        /* Handle macro usage (replacement) */
+        else if ((macro_use = find_macro((*assembler)->macro_list, line)) != NULL) {
+            printf("MACRO USE NAME -%s-", macro_use->macro_name);
+
             content = macro_use->content;
-            while(content != NULL){
-                fprintf( fp_am , "%s" , content->content_line);
+            while (content != NULL) {
+                fprintf(fp_am, "%s", content->content_line);
                 content = content->next;
             }
+
             content = NULL;
             macro_use = NULL;
-        }else if (line[0] != '\n'){
-            fprintf(fp_am , "%s" , line);
         }
-    
-    
+
+        /* If it's a regular line (not macro), copy it to output */
+        else if (line[0] != '\n') {
+            fprintf(fp_am, "%s", line);
+        }
+
+        /* Clear buffer for next line */
         memset(line, '\0', MAX_LINE_LENGTH);
         (*line_counter)++;
     }
 
     printf("\n\n=== ERRORS ===\n");
 
-
-
-
-    if(final_error == false){
+    /* If any error occurred, delete the generated file */
+    if (final_error == false) {
         safe_remove((*assembler)->macro_expanded_file);
     }
 
+    /* Clean up */
     free(line_counter);
     fclose(fp_as);
     fclose(fp_am);
 
     return final_error;
-    
 }
