@@ -201,9 +201,120 @@ void errors_table(ERRORS error_code, int line_counter) {
         case LINE_LENGTH_EXCEED_MAXIMUM:
             printf("Line length is over then 80 chars .\n");
             break;
-            
         default:
             printf("Error on line %d: Unknown error code.\n", line_counter);
+            break;
+    }
+}
+
+/* 
+ * Prints an error message of the first pass corresponding to a given error code.
+ */
+void first_pass_errors(FIRST_PASS_ERRORS error_code, char * line, int error_counter)
+{
+    switch (error_code) {
+        case ERR_AM_FILE:
+            printf("ERROR: Could not open the .am file\n");
+            break;
+            
+        case ERR_NOT_COMMAND_OR_DIRECTIVE:
+            printf("ERROR on line %s: Something other than a command or a directive was entered after the label. \n", line);
+            break;
+
+        case ERR_FIRST_PASS:
+            printf("First pass failed.\n");
+            break;
+
+        case ERR_AMOUNT_OF_ERRORS:
+            printf("%d ERRORS has been deected on the first pass.\n", error_counter);
+            break;
+
+        case ERR_LABEL_INVALID:
+            printf("ERROR on line %s: The label is invalid / doesn't exist.\n", line);
+            break;
+
+        case ERR_UNKNOWN_DIRECTIVE:
+            printf("ERROR: The directive: %s after label is not known\n", line);
+            break;
+
+        case ERR_NOT_A_NUMBER:
+            printf("ERROR: The argument %s is not a number!\n", line);
+            break;
+
+        case ERR_NO_QUOTATION_MARKS:
+            printf("ERROR: There are no quotation marks straightly after .string\n");
+            break;
+
+        case ERR_LABEL_IS_NOT_ALPHANUMERIC:
+            printf("ERROR: The label includes a character other than a digit or a letter.\n");
+            break;
+
+        case ERR_LABEL_ENDING:
+            printf("ERROR: The label cannot end with a character other than a ':'\n");
+            break;
+
+        case ERR_LABEL_RESERVED:
+            printf("ERROR: The label cannot be a reserved word of the assembler.\n");
+            break;
+
+        case ERR_LABEL_START:
+            printf("ERROR: The label has to start with a letter.\n");
+            break;
+
+        case ERR_EXTERNAL_LABEL_EXISTS:
+            printf("ERROR: External label %s already declared.\n", line);
+            break;
+
+        case ERR_LABEL_EXISTS:
+            printf("ERROR: The label '%s' already exists with the same type.\n", line);
+            break;
+
+        case ERR_INVALID_MATRIX:
+            printf("ERROR on line %s: The matrix is invalid\n", line);
+            break;
+
+        case ERR_INVALID_MAT_ARGUMENT:
+            printf("ERROR: '%s' is not a valid argument in .mat\n", line);
+            break;
+
+        case ERR_MAT_WRONG_AMOUNT_OF_VALUES:
+            printf("ERROR: The matrix didn't get the right amount of values\n");
+            break;
+
+        case ERR_CLOSING_QUOTATION_MARK:
+            printf("ERROR: Missing closing quotation mark in .string directive\n");
+            break;
+
+        case ERR_INVALID_OP:
+            printf("ERROR in line %s: Invalid operator\n", line);
+            break;
+
+        case ERR_INVALID_SRC_OP:
+            printf("ERROR in line %s: Invalid source operand\n", line);
+            break;
+
+        case ERR_INVALID_DEST_OP:
+            printf("ERROR in line %s Invalid destination operand\n", line);
+            break;
+
+        case ERR_SHOULD_NOT_HAVE_OP:
+            printf("ERROR in line %s: Command should not have operands\n", line);
+            break;
+
+        case ERR_MISSING_OPERAND:
+            printf("ERROR in line %s: Command is missing its operand\n", line);
+            break;
+
+        case ERR_TOO_MANY_OPERANDS:
+            printf("ERROR in line %s: Command has too many operands\n", line);
+            break;
+
+        case ERR_SHOULD_HAVE_TWO_OP:
+            printf("ERROR: Command should have two operands in line: %s\n", line);
+            break;
+
+        default:
+            printf("Error on line %s: Unknown error code.\n", line);
             break;
     }
 }
