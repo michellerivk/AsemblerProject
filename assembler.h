@@ -42,9 +42,41 @@ typedef enum ERRORS{
     MACRO_ALREADY_DEFINED,         /* Macro already defined */
     FAILED_TO_OPEN_FILE,           /* Failed to open file */
     FAILED_TO_REMOVE_FILE,         /* Failed to remove file */
-    MALLOC_FAILED,                  /* Memory allocation failed */
-    LINE_LENGTH_EXCEED_MAXIMUM    /* Line length too long */
+    MALLOC_FAILED,                 /* Memory allocation failed */
+    LINE_LENGTH_EXCEED_MAXIMUM     /* Line length too long */
 } ERRORS;
+
+/* Possible errors for the first pass */
+typedef enum FIRST_PASS_ERRORS{
+    ERR_AM_FILE = 11,               /* Failed to open .am file */
+    ERR_NOT_COMMAND_OR_DIRECTIVE,   /* Something that is not a command or directive was entered after the label */
+    ERR_FIRST_PASS,                 /* The pass finished with errors */
+    ERR_AMOUNT_OF_ERRORS,           /* The amount of errors that been detected */
+    ERR_LABEL_INVALID,              /* Line doesn't have a label, and needs one */
+    ERR_UNKNOWN_DIRECTIVE,          /* The directive is unknown */
+    ERR_NOT_A_NUMBER,               /* The argument is not numeric */
+    ERR_NO_QUOTATION_MARKS,         /* There are no quotation marks */
+    ERR_LABEL_IS_NOT_ALPHANUMERIC,  /* The label is not alphanumeric */
+    ERR_LABEL_ENDING,               /* The label ends with something other than ':' */
+    ERR_LABEL_RESERVED,             /* The assembler has a reserved word with the name of the label */
+    ERR_LABEL_START,                /* The label doesn't start with a label */
+    ERR_EXTERNAL_LABEL_EXISTS,      /* An external label with the same name exists */
+    ERR_LABEL_EXISTS,               /* A label with the same name exists */
+    ERR_INVALID_MATRIX,             /* The matrix is invalid */
+    ERR_INVALID_MAT_ARGUMENT,       /* The given argument is invalid */
+    ERR_MAT_WRONG_AMOUNT_OF_VALUES, /* The matrix has too many values */
+    ERR_CLOSING_QUOTATION_MARK,     /* Missing a closing quotation mark on string */
+    ERR_INVALID_OP,                 /* An invalid operator was entered */
+    ERR_INVALID_SRC_OP,             /* An invalid source operator was entered */
+    ERR_INVALID_DEST_OP,            /* An invalid destination operator was entered */
+    ERR_SHOULD_NOT_HAVE_OP,         /* The command shouldn't have operands */    
+    ERR_MISSING_OPERAND,            /* An operand is missing */
+    ERR_TOO_MANY_OPERANDS,          /* The command has too many operands */
+    ERR_SHOULD_HAVE_TWO_OP          /* The command should have exactly two operands */
+} FIRST_PASS_ERRORS;
+
+/*************************************************************************/
+
 
 /* Linked list node for storing macro content lines */
 typedef struct macro_content {
@@ -360,6 +392,13 @@ bool examine_macroend(char line[] , int line_counter);
 void errors_table(ERRORS error_code, int line_counter);
 
 /**
+ * Prints an error message based on an error code and optional line number of the first pass.
+ * @param error_code The type of error.
+ * @param line_counter Line number for context (-1 if not relevant).
+ */
+void first_pass_errors(FIRST_PASS_ERRORS error_code, char * line_counter, int error_counter);
+
+/**
  * Removes a file if the name is valid. Exits if removal fails.
  * @param filename The file to remove.
  */
@@ -421,17 +460,9 @@ void free_macro_list(macro *head);
 void free_assembler_table(assembler_table *table);
 
 
-/*=========Michelle header: ==================*/
+/*========= First Pass header: ==================*/
 
-
-
-/* Call helping functions so that the main function can use them*/
 /*
-int first_pass(const char *am_file);
-int macro(const char *as_file);
-char *add_ending(const char *file_name, const char *ending);
-*/
-
 void check_line(char *line, int line_number, assembler_table *table, int *error_count, bool label_flag);
 
 char *get_label(char *line, int i);  
@@ -445,7 +476,10 @@ int check_for_label(label *list, char *label);
 int is_number_ok(char *input);
 
 int get_instruction(char *com);
-int is_reserved_word(const char *label);
+*/
+
+
+int is_reserved_word(const char *label); /* Checks if the label is a reserved word of the assembler */
 
 
 #endif /* ASSEMBLER_H */

@@ -97,7 +97,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
             if (good_label == false)
             {
-                printf("There is no command/directive in line: %s\n", line);
+                first_pass_errors(ERR_NOT_COMMAND_OR_DIRECTIVE, &line[i], -1);
                 (*error_count)++;
                 return;
             }
@@ -143,7 +143,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             }
 
             /* Returns error if no */
-            printf("ERROR: Something other than a command or a directive was entered after the label: %s\n", &line[i]);
+            first_pass_errors(ERR_NOT_COMMAND_OR_DIRECTIVE, &line[i], -1);
             (*error_count)++;
             return;
         }
@@ -151,7 +151,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         /* Sends an error if the label is not valid */
         else
         {
-            printf("ERROR: No label was found in the line: %s\n", line);
+            first_pass_errors(ERR_LABEL_INVALID, line, -1);
             (*error_count)++;
             return;
         }
@@ -179,7 +179,7 @@ char * update_ic(char *line, int i, const char *commands[], int com_len,
         char *command_name = malloc(MAX_LINE_LENGTH);
         if (!command_name) 
         {
-            printf("ERROR: Memory allocation failed.\n");
+            errors_table(MALLOC_FAILED, -1);
             exit(1);
         }
 
@@ -246,7 +246,7 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
         } 
         else 
         {
-            printf("ERROR: The directive: %s after label is not known\n", &line[i]);
+            first_pass_errors(ERR_UNKNOWN_DIRECTIVE, line, -1);
             (*error_count)++;
             free(lbl);
             return false;
@@ -643,14 +643,14 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
                 /* Returns error if memory allocation failed */
                 if (!new_directive) {
-                    printf("ERROR: Memory allocation failed.\n");
+                    errors_table(MALLOC_FAILED, -1);
                     exit(1);
                 }
                 
                 /* Checks if the number is valid */
                 if (!is_number_ok(arg)) 
                 {
-                    printf("ERROR: The argument %s is not a number!\n", arg);
+                    first_pass_errors(ERR_NOT_A_NUMBER, arg, -1);
                     (*error_count)++;
                     arg = strtok(NULL, ",");
                     continue;
@@ -681,7 +681,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
             if (line[i] != '\"') 
             {
-                printf("ERROR: There are no quotation marks straightly after .string\n");
+                first_pass_errors(ERR_NO_QUOTATION_MARKS, "", -1);
                 (*error_count)++;
                 return;
             }
@@ -695,7 +695,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 /* Checks if memory allocation failed */
                 if (!new_directive) 
                 {
-                    printf("ERROR: Memory allocation failed.\n");
+                    errors_table(MALLOC_FAILED, -1);
                     exit(1);
                 }
     
@@ -711,7 +711,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Checks if the string ends with '"' */
             if (line[i] != '\"') 
             {
-                printf("ERROR: Missing closing quotation mark in .string directive\n");
+                first_pass_errors(ERR_CLOSING_QUOTATION_MARK, "", -1);
                 (*error_count)++;
                 return;
             }
@@ -721,7 +721,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
             /* Checks if memory allocation failed */
             if (!null_node) {
-                printf("ERROR: Memory allocation failed.\n");
+                errors_table(MALLOC_FAILED, -1);
                 exit(1);
             }
 
@@ -753,7 +753,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         /* Checks if the input of the matrix is valid */
         if (sscanf(input, "[%d][%d]", &rows, &cols) != 2) 
         {
-            printf("ERROR: The matrix was entered wrongly on line: %s\n", line);
+            first_pass_errors(ERR_INVALID_MATRIX, line, -1);
             (*error_count)++;
             return;
         }
@@ -789,7 +789,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Checks if memory allocation failed */
             if (!mat_node) 
             {
-                printf("ERROR: Memory allocation failed.\n");
+                errors_table(MALLOC_FAILED, -1);
                 exit(1);
             }
             
@@ -802,7 +802,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Checks if valid arguments were given */
             if (!is_number_ok(arg)) 
             {
-                printf("ERROR: '%s' is not a valid number in .mat\n", arg);
+                first_pass_errors(ERR_INVALID_MAT_ARGUMENT, arg, -1);
                 (*error_count)++;
                 arg = strtok(NULL, ",");
                 continue;
@@ -824,7 +824,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
         /* Checks if the amount of numbers is exactly the amount neede to fill the given matrix */
         if (count != rows * cols) 
         {
-            printf("ERROR: Got %d values instead of %d\n", count, rows * cols);
+            first_pass_errors(ERR_MAT_WRONG_AMOUNT_OF_VALUES, "", -1);
             (*error_count)++;
         }
     }    
@@ -892,31 +892,31 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
     label *new_label = (label *)malloc(sizeof(label));
-    /*label *existing = table->label_list;*/
+    label *existing = table->label_list;
 
     /* Checks if memory allocation failed */
     if (!new_label) 
     {
-        printf("ERROR: Memory allocation failed\n");
+        errors_table(MALLOC_FAILED, -1);
         exit(1);
     }
 
     /* Checks if there are labels in the table already */
-    /*
+
     while (existing != NULL)
     {
         if (strcmp(existing->name, lbl) == 0)
         {
-             Checks if 2 labels have the same name and type 
+            /* Checks if 2 labels have the same name and type */
             if (existing->type == type)
             {
-                printf("ERROR: The label '%s' already exists with the same type.\n", lbl);
+                first_pass_errors(ERR_LABEL_EXISTS, lbl, -1);
                 (*error_count)++;
                 return;
             }
         }
         existing = existing->next;
-    }*/
+    }
 
     /* Inserts the name of the label into the table */
     strcpy(new_label->name, lbl);
@@ -968,7 +968,7 @@ char *get_label(char *line, int i)
     /* Returns an error if memory allocation fails */
     if (!label) 
     {
-        printf("ERROR: Out of memory in get_label()\n");
+        errors_table(MALLOC_FAILED, -1);
         exit(1);
     }
 
@@ -1024,7 +1024,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
     {
         if (strcmp(lbl->label, name) == 0) 
         {
-            printf("ERROR: External label %s already declared.\n", name);
+            first_pass_errors(ERR_EXTERNAL_LABEL_EXISTS, name, -1);
             (*error_count)++;
             return;
         }
@@ -1035,7 +1035,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
     lbl = malloc(sizeof(external_label));
     if (!lbl) /* Checks if memory allocation succeded */
     {
-        printf("ERROR: Memory allocation failed.\n");
+        errors_table(MALLOC_FAILED, -1);
         exit(1);
     }
     strcpy(lbl->label, name);
@@ -1103,7 +1103,7 @@ void create_and_add_command(assembler_table *table, unsigned short word_value, c
     /* Checks if the allocation was successful */
     if (!new_command) 
     {
-        printf("ERROR: Memory allocation failed.\n");
+        errors_table(MALLOC_FAILED, -1);
         exit(1);
     }
 
@@ -1261,7 +1261,7 @@ int is_label_ok(char *label)
                 }
                 else
                 {
-                    printf("ERROR: The label includes a charcter other than a digit or a letter.\n");
+                    first_pass_errors(ERR_LABEL_IS_NOT_ALPHANUMERIC, "", -1);
                     return false;
                 }
             }
@@ -1269,7 +1269,7 @@ int is_label_ok(char *label)
             /* Checks if the label ends with a ':' */
             if (label[i] != ':') 
             {
-                printf("ERROR: The label cannot end with a character other than a ':'\n");
+                first_pass_errors(ERR_LABEL_ENDING, "", -1);
                 return false;
             }
 
@@ -1281,14 +1281,14 @@ int is_label_ok(char *label)
         /* Checks if the label is a reserved word. Returns an error if yes. */
         if (is_reserved_word(label_name))
         {
-            printf("ERROR: The label cannot be a reserved word of the essembler.\n");
+            first_pass_errors(ERR_LABEL_RESERVED, "", -1);
             return false;
         }
     }
 
     else
     {
-        printf("ERROR: The label has to start with a letter.\n");
+        first_pass_errors(ERR_LABEL_START, "", -1);
         return false;
     }
 

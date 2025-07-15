@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
         /* First pass: parse and collect labels, instructions, and data */
         if (!first_pass(argv[i], assembler)) {
-            printf("First pass failed.\n");
+            first_pass_errors(ERR_FIRST_PASS, " ",-1);
             return 1;
         }
 

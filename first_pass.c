@@ -48,7 +48,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Checks if file was opened. Returns error if no. */
     if (!am) 
     {
-        printf("ERROR: Could not open file %s\n", full_file);
+        first_pass_errors(ERR_AM_FILE, " ", -1);
         return 0;
     }
     
@@ -69,7 +69,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
     {
-        printf("\nPlease fix the previous %d errors, and start over!\n", error_count);
+        first_pass_errors(ERR_AMOUNT_OF_ERRORS, " " , error_count);
         return(0);
     }
 
