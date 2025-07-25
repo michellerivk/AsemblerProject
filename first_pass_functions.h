@@ -2,14 +2,14 @@
 #define FIRST_PASS_FUNCTIONS_H
 
 #include "assembler.h"
+#include "first_pass_error_checks.h"
 
 /**
  * @file first_pass_functions.h
  * @brief Header file for first pass of assembler.
  *
- * This file contains function declarations shared between:
+ * This file contains function declarations from the file:
  * - first_pass_funcitons.c
- * - first_pass_error_checks.c
  *
  * All functions operate on the assembler table structure to update the IC/DC,
  * and prepare the code for second pass processing.
@@ -52,7 +52,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
  */
 int add_label(assembler_table *table, char *line, int i, int *error_count, 
               const char *commands[], const char *directives[], int commands_len, 
-              int directives_len, bool label_flag);
+              int directives_len, bool label_flag, int line_number);
 
 /**
  * @brief Updates the instruction counter based on the number of operands in a command.
@@ -66,7 +66,7 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
  * @param label_flag   Boolean variable used to check if this line starts with a label.
  */
 char * update_ic(char *line, int i, const char *commands[], int com_len, 
-               assembler_table *table, int *error_count, bool label_flag);
+               assembler_table *table, int *error_count, bool label_flag, int line_number);
 
 
 /* ############################### Command Parsing and Encoding ############################### */
@@ -83,7 +83,7 @@ char * update_ic(char *line, int i, const char *commands[], int com_len,
  *
  * @return The length of the word found (if it's valid), or -1 otherwise.
  */
-int check_word(char *line, int start, const char *words[], int amount, int *error_count, bool label_flag);
+int check_word(char *line, int start, const char *words[], int amount, int *error_count, bool label_flag, int line_number);
 
 /**
  * @brief Returns the opcode value of the given command name.
@@ -165,7 +165,7 @@ unsigned short build_matrix_reg_word(const char *op);
  * @param error_count  The number of errors found so far.
  * @param directive    The directive word being processed.
  */
-void add_directive(assembler_table *table, char *line, int *error_count, char *directive);
+void add_directive(assembler_table *table, char *line, int *error_count, char *directive, int line_number);
 
 
 
@@ -191,16 +191,6 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
  */
 char *get_label(char *line, int i);
 
-/**
- * Checks if the given label already exists in the label list.
- *
- * @param list   The head of the label list.
- * @param label  The label name to check.
- *
- * @return true (1) if the label exists, false (0) otherwise.
- */
-int check_for_label(label *list, char *label);
-
 
 /* ############################### External/Entry labels ############################### */
 
@@ -211,7 +201,7 @@ int check_for_label(label *list, char *label);
  * @param name      
  * @param error_count
  */
-void add_external_label_to_table(assembler_table *table, char *name, int *error_count);
+void add_external_label_to_table(assembler_table *table, char *name, int *error_count, int line_number);
 
 
 /**
@@ -274,7 +264,7 @@ void add_command_node(assembler_table *table, command *new_node);
  *
  * @return true (1) if the label is legal, false (0) otherwise.
  */
-int is_label_ok(char *label);
+int is_label_ok(char *label, int line_number);
 
 /**
  * @brief Checks if the given string is a valid number.
@@ -315,115 +305,5 @@ int is_reserved_word(const char *label);
  *
  */
 void remove_comment_symbol(char *line);
-
-/* =============== Functions for the first_pass_functions.c file =============== */
-
-/* ############################### Error Checks ############################### */
-
-/**
- * @brief Validates the command line.
- *
- * This function checks whether the operations in the given command in the line are written correctly,
- * including the number and validity of operands, proper comma usage, and correct addressing modes
- * according to the operation type.
- *
- * @param line            The line to check.
- * @param i               The starting index of the line.
- * @param error_count     The number of errors found so far.
- * @param operands_amount The number of operands for the current command.
- * @param command_name    The name of the command.
- * @param label_flag      Boolean variable used to check if this line starts with a label.
- *
- * @return true (1) if the command is valid, false (0) otherwise.
- */
-bool check_command(char *line, int i, int *error_count, int operands_amount, char *command, bool label_flag);
-
-/**
- * @brief Validates a command line that should not contain any operands.
- *
- * This function checks whether a command that requires zero operands is followed by an extra argument.
- * If any argument is found after the command, it reports an error and increments the error count.
- *
- * @param line        The line to check.
- * @param i           The starting index of operands in the line.
- * @param error_count The number of errors found so far.
- *
- * @return true (1) if the command line is valid, false (0) otherwise.
- */
-bool check_zero_operands(char *line, int i, int *error_count);
-
- /**
- * @brief Validates a line with one operand.
- *
- * This function checks if the line contains only one valid operand.
- * It verifies that the operand type matches the rules for the specific command.
- *
- * @param line        The full line of the assembly code.
- * @param i           The starting index of the operands in the line.
- * @param error_count The number of errors found so far.
- * @param name        The name of the command.
- * @param operand     The operand to validate.
- *
- * @return true (1) if the operand is valid for the given command, false (0) otherwise.
- */
-bool check_one_operands(char *line, int i, int *error_count, char *name, char *operand);
-
-/**
- * @brief Validates a line with two operands.
- *
- * This function checks if the line contains only two operands, separated by a comma,
- * and validates them according to the command.
- *
- * @param line        The line to check.
- * @param i           The starting index of the operands in the line.
- * @param error_count The number of errors found so far.
- * @param name        The name of the command.
- *
- * @return true (1) if both operands are valid, false (0) otherwise.
- */
-bool check_two_operands(char *line, int i, int *error_count, char *name);
-
-/**
- * @brief Checks if the given operand is a valid matrix.
- *
- * A valid matrix operand has the form: LABEL[register1][register2]
- *
- * @param operand The operand to check.
- *
- * @return true (1) if the operand is a valid matrix, false (0) otherwise.
- */
-bool is_matrix(char *operand);
-
-/**
- * @brief Checks if the given operand is a valid immediate.
- *
- * The immediate must begin with '#' followed by a number. (Could be with a '-')
- *
- * @param operand The operand to check.
- *
- * @return true if the operand is a valid immediate, false (0) otherwise.
- */
-bool is_immediate(char *operand);
-
-/**
- * @brief Checks if the given operand is a valid register. (r1 -r7)
- *
- * @param operand The operand to check.
- *
- * @return true (1) if the operand is a register, false (0) otherwise.
- */
-bool is_register(char *operand);
-
-/**
- * @brief Checks if the given operand is a valid label.
- *
- * A valid label must start with a letter, followed by letters or digits ONLY.
- *
- * @param operand The operand string to check.
- *
- * @return true (1) if the operand is a valid label, false (0) otherwise.
- */
-bool is_label(char *operand);
-
 
 #endif /* FIRST_PASS_FUNCTIONS_H */

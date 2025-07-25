@@ -17,6 +17,11 @@ int main(int argc, char **argv) {
     assembler_table *assembler = NULL;
     int i;
 
+    if(argc < 2){
+        printf("Missing file as parameter\n");
+        return false;
+    }
+
     /* Process each input file */
     for (i = 1; i < argc; i++) {
         /* Check if filename is too long */
@@ -35,7 +40,7 @@ int main(int argc, char **argv) {
 
         /* First pass: parse and collect labels, instructions, and data */
         if (!first_pass(argv[i], assembler)) {
-            first_pass_errors(ERR_FIRST_PASS, " ",-1);
+            first_pass_errors(ERR_FIRST_PASS, -1,-1);
             return 1;
         }
 

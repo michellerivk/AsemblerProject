@@ -6,8 +6,36 @@ mcro  a_mcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
+
+
+mcro  a_mcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  a                                                 
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+                                                                                               
 mcro  a_mc
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  mov
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  jmp
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  mcro
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
@@ -29,7 +57,7 @@ inc K
     bne LOOP 
 mcroend  
                       
-mcro  &or  
+mcro  &XXXX
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend  
@@ -46,6 +74,11 @@ mcroend   XXX
 
 
 mcro  hadar 
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend  
+
+mcro  a_mc 
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend  
