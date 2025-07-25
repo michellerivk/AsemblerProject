@@ -396,7 +396,7 @@ void errors_table(ERRORS error_code, int line_counter);
  * @param error_code The type of error.
  * @param line_counter Line number for context (-1 if not relevant).
  */
-void first_pass_errors(FIRST_PASS_ERRORS error_code, char * line_counter, int error_counter);
+void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter);
 
 /**
  * Removes a file if the name is valid. Exits if removal fails.
@@ -470,8 +470,6 @@ char *get_label(char *line, int i);
 int is_command_ok(char *word);
 
 void add_label_to_table();
-
-int check_for_label(label *list, char *label);
 
 int is_number_ok(char *input);
 

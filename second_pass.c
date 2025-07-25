@@ -5,19 +5,22 @@
   Returns false if such a conflict is found, true otherwise.
 */
 
+
+/*
 bool data_entry_check(assembler_table **assembler) {
     bool error = true;
-    label *label1 = (*assembler)->label_list; /* Label to go over the label list */
+    label *label1 = (*assembler)->label_list; */ /* Label to go over the label list */
 
-    /* Scan all labels looking for ENTRY labels */
+    /* Scan all labels looking for ENTRY labels 
     while (label1 != NULL) {
         if (label1->type == ENTRY) {
-            label *label2 = (*assembler)->label_list;
+            label *label2 = (*assembler)->label_list; */
 
-            /* For each ENTRY label, scan again for a matching DATA label */
+            /* For each ENTRY label, scan again for a matching DATA label 
             while (label2 != NULL) {
-                if (strcmp(label1->name, label2->name) == 0 && label2->type == DATA) {
+                if (strcmp(label1->name, label2->name) == 0 && label2->type == DATA) { */
                     /* label is both ENTRY and DATA */
+                    /*
                     printf("Error: Entry label '%s' can not be defined as Data type.\n", label1->name);
                     error = false;
                 }
@@ -28,7 +31,7 @@ bool data_entry_check(assembler_table **assembler) {
     }
 
     return error;
-}
+}*/
 
 
 
@@ -208,9 +211,9 @@ bool second_pass(assembler_table **assembler) {
     }
 	
     /* Then check for entry label that define as data */
-    if(!data_entry_check(assembler)){
+    /*if(!data_entry_check(assembler)){
         final_error = false;
-    }
+    }*/
 
     /* Loop over all commands to resolve label references */
     while (ptr_cmd != NULL) {

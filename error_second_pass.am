@@ -5,5 +5,7 @@ DEFINEEXTERN:.data5
 .entryVALID
 VALID:movr2,r1
 movr2,DIDNTDEFINElabelAsOperand
-LABELDEFINED:movr2,r1
-LABELDEFINED:movr2,r1
+jmpDIDNTDEFINElabelAsOperand
+movM1[r3][r3],r3
+jmpM1[r3][r3]
+movr2,r1

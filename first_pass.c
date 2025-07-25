@@ -27,7 +27,7 @@
 int first_pass(const char *file, assembler_table *table) 
 {
     int error_count = 0; /* Counts the amount of errors */
-    char *full_file = malloc(strlen(file) + 4); /* File name + .am */
+    char *full_file = generic_malloc(strlen(file) + 4); /* File name + .am */
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
@@ -48,7 +48,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Checks if file was opened. Returns error if no. */
     if (!am) 
     {
-        first_pass_errors(ERR_AM_FILE, " ", -1);
+        first_pass_errors(ERR_AM_FILE, -1, -1);
         return 0;
     }
     
@@ -69,7 +69,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Checks if there were any errors. Returns error if yes, and stops the program. */
     if (error_count != 0)
     {
-        first_pass_errors(ERR_AMOUNT_OF_ERRORS, " " , error_count);
+        first_pass_errors(ERR_AMOUNT_OF_ERRORS, -1, error_count);
         return(0);
     }
 

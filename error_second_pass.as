@@ -6,5 +6,15 @@ DEFINEEXTERN: .data 5
 .entry VALID
 VALID: mov r2,r1
 mov r2 , DIDNTDEFINElabelAsOperand
-LABELDEFINED: mov r2 , r1
-LABELDEFINED: mov r2 , r1 
+
+
+jmp DIDNTDEFINElabelAsOperand
+
+mov M1[r3][r3],r3
+
+jmp M1[r3][r3]
+ mov r2 , r1
+
+
+
+

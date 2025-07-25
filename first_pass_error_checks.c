@@ -14,10 +14,11 @@
  * @param operands_amount The number of operands for the current command.
  * @param command_name    The name of the command.
  * @param label_flag      Boolean variable used to check if this line starts with a label.
+ * @param line_number     The number of the line being checked
  *
  * @return true (1) if the command is valid, false (0) otherwise.
  */
-bool check_command(char *line, int i, int *error_count, int operands_amount, char *command_name, bool label_flag)
+bool check_command(char *line, int i, int *error_count, int operands_amount, char *command_name, bool label_flag, int line_number)
 {
     char operand[MAX_LINE_LENGTH];
     char copy_of_line[MAX_LINE_LENGTH];
@@ -52,13 +53,13 @@ bool check_command(char *line, int i, int *error_count, int operands_amount, cha
     switch (operands_amount) 
     {
         case 0:
-            return check_zero_operands(line, i, error_count);
+            return check_zero_operands(line, i, error_count, line_number);
         case 1:
-            return check_one_operands(line, i, error_count, command_name, operand);
+            return check_one_operands(line, i, error_count, command_name, operand, line_number);
         case 2:
-            return check_two_operands(line, i, error_count, command_name);
+            return check_two_operands(line, i, error_count, command_name, line_number);
         default:
-            first_pass_errors(ERR_INVALID_OP, line, -1);
+            first_pass_errors(ERR_INVALID_OP, line_number, -1);
             (*error_count)++;
             return false;
     }
@@ -71,14 +72,15 @@ bool check_command(char *line, int i, int *error_count, int operands_amount, cha
  * @param line        The line to check.
  * @param i           The starting index of operands in the line.
  * @param error_count The number of errors found so far.
+ * @param line_number The number of the line being checked
  *
  * @return true (1) if the command line is valid, false (0) otherwise.
  */
-bool check_zero_operands(char *line, int i, int *error_count) 
+bool check_zero_operands(char *line, int i, int *error_count, int line_number) 
 {    
     if (line[i] != '\0' && line[i] != '\n') 
     {
-        first_pass_errors(ERR_SHOULD_NOT_HAVE_OP, line, -1);
+        first_pass_errors(ERR_SHOULD_NOT_HAVE_OP, line_number, -1);
         (*error_count)++;
         return false;
     }
@@ -95,11 +97,12 @@ bool check_zero_operands(char *line, int i, int *error_count)
  * @param error_count The number of errors found so far.
  * @param name        The name of the command.
  * @param operand     The operand to validate.
+ * @param line_number The number of the line being checked
  *
  * @return true (1) if the operand is valid for the given command, false (0) otherwise.
  */
 
-bool check_one_operands(char *line, int i, int *error_count, char *name, char *operand) 
+bool check_one_operands(char *line, int i, int *error_count, char *name, char *operand, int line_number) 
 {
     int comma_count = 0;
     bool ok = false;
@@ -107,7 +110,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     /* Checks if there are enough operands */
     if (line[i] == '\0' || line[i] == '\n') 
     {
-        first_pass_errors(ERR_MISSING_OPERAND, line, -1);
+        first_pass_errors(ERR_MISSING_OPERAND, line_number, -1);
         (*error_count)++;
         return ok;
     }
@@ -123,7 +126,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     /* Checks if there are too many operands */
     if (comma_count != 0) 
     {
-        first_pass_errors(ERR_TOO_MANY_OPERANDS, line, -1);
+        first_pass_errors(ERR_TOO_MANY_OPERANDS, line_number, -1);
         (*error_count)++;
         return ok;
     }
@@ -153,7 +156,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
 
     if (!ok)
     {
-        first_pass_errors(ERR_INVALID_OP, line, -1);
+        first_pass_errors(ERR_INVALID_OP, line_number, -1);
         (*error_count)++;
     }
     
@@ -169,11 +172,12 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
  * @param i           The starting index of the operands in the line.
  * @param error_count The number of errors found so far.
  * @param name        The name of the command.
+ * @param line_number The number of the line being checked
  *
  * @return true (1) if both operands are valid, false (0) otherwise.
  */
 
-bool check_two_operands(char *line, int i, int *error_count, char *name) 
+bool check_two_operands(char *line, int i, int *error_count, char *name, int line_number) 
 {
     char temp_line[MAX_LINE_LENGTH];
     char *src = NULL, *dest = NULL;
@@ -206,7 +210,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     /* Sends an error if yes */
     if (count != 2) 
     {
-        first_pass_errors(ERR_SHOULD_HAVE_TWO_OP, line, -1);
+        first_pass_errors(ERR_SHOULD_HAVE_TWO_OP, line_number, -1);
         (*error_count)++;
         return false;
     }
@@ -249,12 +253,12 @@ bool check_two_operands(char *line, int i, int *error_count, char *name)
     }
 
     if (!src_ok) {
-        first_pass_errors(ERR_INVALID_SRC_OP, line, -1);
+        first_pass_errors(ERR_INVALID_SRC_OP, line_number, -1);
         (*error_count)++;
     }
 
     if (!dest_ok) {
-        first_pass_errors(ERR_INVALID_DEST_OP, line, -1);
+        first_pass_errors(ERR_INVALID_DEST_OP, line_number, -1);
         (*error_count)++;
     }
 
