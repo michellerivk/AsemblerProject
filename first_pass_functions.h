@@ -306,4 +306,23 @@ int is_reserved_word(const char *label);
  */
 void remove_comment_symbol(char *line);
 
+/**
+ * Returns 1 if any of the given words appears in the line.
+ * Otherwise returns 0.
+ * 
+ * @param line      The line we're looking for our word in.
+ * @param words     The list of words we're looking for (Either commands or directives)
+ * @param amount    The amount of words in the list.
+ */
+int contains_any_word(const char *line, const char *words[], int amount);
+
+/** 
+ * Returns the index of the word in the line
+ * 
+ * @param line      The line we're looking for our word in.
+ * @param words     The list of words we're looking for (Either commands or directives)
+ * @param amount    The amount of words in the list.
+ */
+int find_any_word_index(const char *line, const char *words[], int amount);
+
 #endif /* FIRST_PASS_FUNCTIONS_H */

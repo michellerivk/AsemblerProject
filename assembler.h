@@ -72,7 +72,8 @@ typedef enum FIRST_PASS_ERRORS{
     ERR_SHOULD_NOT_HAVE_OP,         /* The command shouldn't have operands */    
     ERR_MISSING_OPERAND,            /* An operand is missing */
     ERR_TOO_MANY_OPERANDS,          /* The command has too many operands */
-    ERR_SHOULD_HAVE_TWO_OP          /* The command should have exactly two operands */
+    ERR_SHOULD_HAVE_TWO_OP,         /* The command should have exactly two operands */
+    ERR_OPCODE                      /* The command has the wrong opcode */
 } FIRST_PASS_ERRORS;
 
 /*************************************************************************/
