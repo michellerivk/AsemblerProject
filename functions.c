@@ -253,6 +253,10 @@ void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter
             printf("ERROR on line %d: The label cannot end with a character other than a ':'\n", line);
             break;
 
+        case ERR_OPCODE:
+            printf("ERROR on line %d: The given opcode is invalid\n", line);
+            break;
+
         case ERR_LABEL_RESERVED:
             printf("ERROR on line %d: The label cannot be a reserved word of the assembler.\n", line);
             break;

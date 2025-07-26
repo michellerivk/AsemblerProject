@@ -181,7 +181,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
 {
     char temp_line[MAX_LINE_LENGTH];
     char *src = NULL, *dest = NULL;
-    int count = 0;
+    int count = 0; /* Counts the number of operands */
     bool src_ok = false, dest_ok = false;
 
 

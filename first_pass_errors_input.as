@@ -1,64 +1,60 @@
-; --- ERR_NOT_COMMAND_OR_DIRECTIVE ---
-LABEL1: some_invalid_text ; Not a command or directive after label
+; line 2 - Not a command or directive after label
+LABEL1: some_invalid_text
 
-; --- ERR_UNKNOWN_DIRECTIVE ---
-        .nonsense_directive 123 ; Unknown directive
+; line 4 - Unknown directive
+.nonsense_directive 123 
 
-; --- ERR_NOT_A_NUMBER ---
-        .data 5, nine, 3 ; "nine" is not a number
+; line 6 - "nine" is not a number
+.data 5, nine, 3
 
-; --- ERR_NO_QUOTATION_MARKS ---
-        .string Hello World ; Missing quotation marks after .string
+; line 8 - Missing quotation marks after .string
+.string Hello World 
 
-; --- ERR_LABEL_IS_NOT_ALPHANUMERIC ---
-INVALID@LABEL: mov @r1, @r2 ; Label contains non-alphanumeric character
+; line 10 - Label contains non-alphanumeric character
+INVALID LABEL: mov  r1,  r2 ; 
 
-; --- ERR_LABEL_ENDING ---
-MissingColon mov @r3, @r4 ; Label does not end with a ':'
+; line 12 - Label does not end with a ':'
+MissingColon mov  r3,  r4 
 
-; --- ERR_LABEL_RESERVED ---
-.data: mov @r1, @r2 ; Label is a reserved directive name
+; line 14 - Label is a reserved assembler name
+mov: mov  r1,  r2 
 
-; --- ERR_LABEL_START ---
-9InvalidStart: add @r2, @r3 ; Label starts with a digit
+; line 16 - Label starts with a digit
+9InvalidStart: add  r2,  r3 
 
-; --- ERR_EXTERNAL_LABEL_EXISTS ---
-        .extern SHARED_LABEL
-        .extern SHARED_LABEL ; External label re-declared
+; line 19 - External label re-declared
+.extern SHARED_LABEL
+.extern SHARED_LABEL
 
-; --- ERR_LABEL_EXISTS ---
-EXISTING: .data 1,2,3
-EXISTING: .string "duplicate" ; Label redefined
+; line 21 - Invalid matrix declaration syntax
+.mat 4,5,6,7,8,9
 
-; --- ERR_INVALID_MATRIX ---
-        .mat 4,5,6,7,8,9 ; Invalid matrix declaration syntax
+; line 23 - Invalid matrix argument
+.mat [5a][2] ; 
 
-; --- ERR_INVALID_MAT_ARGUMENT ---
-        .mat [5a][2] ; Invalid matrix argument
+; line 25 - Not enough values for 2x2 matrix
+.mat [2][2] 1,2,3
 
-; --- ERR_MAT_WRONG_AMOUNT_OF_VALUES ---
-        .mat [2][2] 1,2,3 ; Not enough values for 2x2 matrix
+; line 27 - Missing closing quotation mark
+.string "Hello, world  
 
-; --- ERR_CLOSING_QUOTATION_MARK ---
-        .string "Hello, world ; Missing closing quotation mark
+; line 29 - 'fly' is not a valid opcode
+fly  r2,  r3 
 
-; --- ERR_INVALID_OP ---
-        fly @r2, @r3 ; 'fly' is not a valid opcode
+; line 31 - Invalid source operand
+mov 3Hello,  r3  
 
-; --- ERR_INVALID_SRC_OP ---
-        mov 3Hello, @r3 ; Invalid source operand
+; line 33 - Invalid destination operand
+mov  r3, "badDest"  
 
-; --- ERR_INVALID_DEST_OP ---
-        mov @r3, "badDest" ; Invalid destination operand
+; line 35 - 'stop' shouldn't have operands
+stop  r2 
 
-; --- ERR_SHOULD_NOT_HAVE_OP ---
-        stop @r2 ; 'stop' shouldn't have operands
+; line 37 - 'prn' missing operand
+prn 
 
-; --- ERR_MISSING_OPERAND ---
-        prn ; 'prn' missing operand
+; line 39 - 
+inc  r1,  r2  
 
-; --- ERR_TOO_MANY_OPERANDS ---
-        inc @r1, @r2 ; 'inc' only accepts one operand
-
-; --- ERR_SHOULD_HAVE_TWO_OP ---
-        add @r3 ; 'add' needs two operands
+; line 41 - 'add' needs two operands
+add  r3 

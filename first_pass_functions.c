@@ -49,16 +49,24 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
         if (len != -1)
         {
-            strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number));
+            char *tmp = update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
 
-            update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
+            if (!tmp) 
+            {
+                return;
+            }
+
+            strcpy(command_name, tmp);
+
+            free(tmp); /* free allocated memory caused by update_ic() */
 
             extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
             encode_command(table, check_command_value(command_name), src, dest, NULL);
         }
         else
-        {
+        {         
+
             /* Checks if there's a directive */
             len = check_word(line, i, directives, dir_len, error_count, label_flag, line_number);
 
@@ -76,7 +84,33 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             /* If there is no directive nor command, it will do nothing */
             else
             {
-                return;
+                if (line[0] == '\n') /* Empty lines are valid */
+                {
+                    return;
+                }
+                else /* There's an error with the line */
+                {
+                    /* Checks if the opcode appears in the line */
+                    if(contains_any_word(line, commands, com_len) || contains_any_word(line, directives, dir_len))
+                    {
+                        /* If opcode appears, at the middle of line, there's a problem with the label */
+                        if (find_any_word_index(line, commands, com_len) != 0 && find_any_word_index(line, directives, dir_len) != 0)
+                        {
+                            first_pass_errors(ERR_LABEL_ENDING, line_number, -1);
+                            (*error_count)++;
+                            return;
+                        }
+                        
+                        return;
+                    }
+                    /* Otherwise the problem is with the op code */
+                    else
+                    {
+                        first_pass_errors(ERR_OPCODE, line_number, -1);
+                        (*error_count)++;
+                        return;
+                    }
+                }
             }
         }
     }
@@ -132,7 +166,16 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             if (len != -1)
             {
                 /* Updates the IC, and gets the name of the command */
-                strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number));
+                char *tmp = update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
+
+                if (!tmp) 
+                {
+                    return;
+                }
+
+                strcpy(command_name, tmp);
+
+                free(tmp); /* free allocated memory caused by update_ic() */
 
                 extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
@@ -150,9 +193,6 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
         /* Sends an error if the label is not valid */
         else
         {
-            /*first_pass_errors(ERR_LABEL_INVALID, line_number, -1);*/ /* No need fo another error */
-
-
             (*error_count)++; /* The errors are called for in the is_label_ok() function */
             return;
         }
@@ -663,10 +703,10 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 /* Checks if the number is valid */
                 if (!is_number_ok(arg))
                 {
+                    free(new_directive);
                     first_pass_errors(ERR_NOT_A_NUMBER, line_number, -1);
                     (*error_count)++;
-                    arg = strtok(NULL, ",");
-                    continue;
+                    return;
                 }
 
                 value = atoi(arg);
@@ -679,6 +719,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 add_data_node(table, new_directive);
 
                 arg = strtok(NULL, ",");
+
             }
         }
     }
@@ -794,10 +835,10 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Checks if valid arguments were given */
             if (!is_number_ok(arg))
             {
+                free(mat_node);
                 first_pass_errors(ERR_INVALID_MAT_ARGUMENT, line_number, -1);
                 (*error_count)++;
-                arg = strtok(NULL, ",");
-                continue;
+                return;
             }
 
             /* Fills the table */
@@ -1326,6 +1367,55 @@ int is_reserved_word(const char *label)
 }
 
 /* ############################### Helpers ############################### */
+
+/**
+ * Returns 1 if any of the given words appears in the line.
+ * Otherwise returns 0.
+ * 
+ * @param line      The line we're looking for our word in.
+ * @param words     The list of words we're looking for (Either commands or directives)
+ * @param amount    The amount of words in the list.
+ */
+int contains_any_word(const char *line, const char *words[], int amount)
+{
+    int i;
+    bool exists = false;
+
+    for (i = 0; i < amount; i++) 
+    {
+        if (strstr(line, words[i]) != NULL) 
+        {
+            exists = true;        
+        }
+    }
+
+    return exists;
+}
+
+/** 
+ * Returns the index of the word in the line
+ * 
+ * @param line      The line we're looking for our word in.
+ * @param words     The list of words we're looking for (Either commands or directives)
+ * @param amount    The amount of words in the list.
+ */
+int find_any_word_index(const char *line, const char *words[], int amount)
+{
+    int i;
+    const char *indx;
+
+    for (i = 0; i < amount; i++) 
+    {
+        indx = strstr(line, words[i]);
+        if (indx) 
+        {
+            return (int)(indx - line); /* Returns the number of characters between the word and the start. */
+        }
+    }
+    return -1;
+}
+
+
 
 /**
  * Removes the symbol ';' from the line.
