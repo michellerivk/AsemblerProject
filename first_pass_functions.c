@@ -49,14 +49,20 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
         if (len != -1)
         {
-            strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number));
+            char *tmp = update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
 
-            update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
+            if (!tmp) 
+            {
+                return;
+            }
+
+            strcpy(command_name, tmp);
+
+            free(tmp); /* free allocated memory caused by update_ic() */
 
             extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
             encode_command(table, check_command_value(command_name), src, dest, NULL);
-
         }
         else
         {         
@@ -160,7 +166,16 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
             if (len != -1)
             {
                 /* Updates the IC, and gets the name of the command */
-                strcpy(command_name, update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number));
+                char *tmp = update_ic(line, i, commands, com_len, table, error_count, label_flag, line_number);
+
+                if (!tmp) 
+                {
+                    return;
+                }
+
+                strcpy(command_name, tmp);
+
+                free(tmp); /* free allocated memory caused by update_ic() */
 
                 extract_operands(line, i, strlen(command_name), src, dest, get_instruction(command_name));
 
@@ -688,6 +703,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 /* Checks if the number is valid */
                 if (!is_number_ok(arg))
                 {
+                    free(new_directive);
                     first_pass_errors(ERR_NOT_A_NUMBER, line_number, -1);
                     (*error_count)++;
                     return;
@@ -703,6 +719,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
                 add_data_node(table, new_directive);
 
                 arg = strtok(NULL, ",");
+
             }
         }
     }
@@ -818,6 +835,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             /* Checks if valid arguments were given */
             if (!is_number_ok(arg))
             {
+                free(mat_node);
                 first_pass_errors(ERR_INVALID_MAT_ARGUMENT, line_number, -1);
                 (*error_count)++;
                 return;
