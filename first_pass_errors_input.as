@@ -11,7 +11,7 @@ LABEL1: some_invalid_text
 .string Hello World 
 
 ; line 10 - Label contains non-alphanumeric character
-INVALID LABEL: mov  r1,  r2 ; 
+INVALID@LABEL: mov  r1,  r2 
 
 ; line 12 - Label does not end with a ':'
 MissingColon mov  r3,  r4 
@@ -30,7 +30,7 @@ mov: mov  r1,  r2
 .mat 4,5,6,7,8,9
 
 ; line 23 - Invalid matrix argument
-.mat [5a][2] ; 
+.mat [5a][2] 
 
 ; line 25 - Not enough values for 2x2 matrix
 .mat [2][2] 1,2,3
@@ -58,3 +58,4 @@ inc  r1,  r2
 
 ; line 41 - 'add' needs two operands
 add  r3 
+

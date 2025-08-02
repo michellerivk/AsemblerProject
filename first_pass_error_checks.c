@@ -141,7 +141,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     }
     if (strcmp(name, "prn") == 0)
     {
-        if (is_register(operand) || is_immediate(operand) || is_label(operand)) 
+        if (is_register(operand) || is_immediate(operand) || is_label(operand) || is_matrix(operand)) 
         {
             ok = true;
         }
@@ -218,11 +218,11 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
 
     if (strcmp(name, "cmp") == 0)
     {
-        if (is_register(src) || is_immediate(src) || is_label(src)) 
+        if (is_register(src) || is_immediate(src) || is_label(src) || is_matrix(src)) 
         {
             src_ok = true;
         }
-        if (is_register(dest) || is_immediate(dest) || is_label(dest)) 
+        if (is_register(dest) || is_immediate(dest) || is_label(dest) || is_matrix(dest)) 
         {
             dest_ok = true;
         }
@@ -234,7 +234,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
             src_ok = true;
         }
         
-        if (is_register(dest) || is_label(dest)) 
+        if (is_register(dest) || is_label(dest) || is_matrix(dest)) 
         {
            dest_ok = true;
         }
@@ -246,7 +246,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
             src_ok = true;
         }
         
-        if (is_register(dest) || is_label(dest)) 
+        if (is_register(dest) || is_label(dest) || is_matrix(dest)) 
         {
             dest_ok = true;
         }

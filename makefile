@@ -11,7 +11,7 @@ first_pass.o: first_pass.c assembler.h
 	gcc -g -c -Wall -ansi -pedantic first_pass.c -o first_pass.o
 
 # Compile pre_proc.c
-pre_proc.o: pre_proc.c assembler.h
+pre_proc.o: pre_proc.c assembler.h pre_proc.h
 	gcc -g -c -Wall -ansi -pedantic pre_proc.c -o pre_proc.o
 
 # Compile structs.c
@@ -23,11 +23,11 @@ functions.o: functions.c assembler.h
 	gcc -g -c -Wall -ansi -pedantic functions.c -o functions.o
 
 # Compile translation_unit.c
-translation_unit.o: translation_unit.c assembler.h
+translation_unit.o: translation_unit.c assembler.h translation_unit.h
 	gcc -g -c -Wall -ansi -pedantic translation_unit.c -o translation_unit.o
 
 # Compile second_pass.c
-second_pass.o: second_pass.c assembler.h
+second_pass.o: second_pass.c assembler.h second_pass.h
 	gcc -g -c -Wall -ansi -pedantic second_pass.c -o second_pass.o
 
 # Compile first_pass_functions.c
