@@ -7,7 +7,7 @@ LABEL1:some_invalid_text
 ;
 .stringHelloWorld
 ;
-INVALIDLABEL:movr1,r2;
+INVALID@LABEL:movr1,r2
 ;
 MissingColonmovr3,r4
 ;
@@ -20,7 +20,7 @@ mov:movr1,r2
 ;
 .mat4,5,6,7,8,9
 ;
-.mat[5a][2];
+.mat[5a][2]
 ;
 .mat[2][2]1,2,3
 ;

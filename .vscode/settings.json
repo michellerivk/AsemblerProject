@@ -2,6 +2,8 @@
     "files.associations": {
         "stdio.h": "c",
         "assembler.h": "c",
-        "first_pass_functions.h": "c"
+        "first_pass_functions.h": "c",
+        "first_pass_error_checks.h": "c",
+        "first_pass_helpers.h": "c"
     }
 }

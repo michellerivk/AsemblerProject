@@ -3,21 +3,25 @@
 
 #include "assembler.h"
 #include "first_pass_error_checks.h"
+#include "first_pass_helpers.h"
 
 /**
  * @file first_pass_functions.h
- * @brief Header file for first pass of assembler.
+ * @brief Header file for fucntions of the first pass of the assembler.
  *
  * This file contains function declarations from the file:
- * - first_pass_funcitons.c
+ * + first_pass_functions.c
+ * 
+ * And it includes the other header files for help:
+ * + first_pass_error_checks.h
+ * + first_pass_helpers.h
  *
- * All functions operate on the assembler table structure to update the IC/DC,
- * and prepare the code for second pass processing.
+ * This header declares the functions that operate on the assembler table structure.
+ * Operations such as:
+ * + Updateing the IC/DC
+ * + Filling in the entire table structure
+ * + Preparing the code for second pass processing
  */
-
-
- /* =============== Functions for the first_pass_functions.c file =============== */
-
 
 /* ############################### Main Functions Declarations ############################### */
 
@@ -252,77 +256,5 @@ void add_label_node(assembler_table *table, label *new_node);
  * @param new_node  The command node to add to the list.
  */
 void add_command_node(assembler_table *table, command *new_node);
-
-
-
-/* ############################### Error Checks ############################### */
-
-/**
- * @brief Validates the name of a label.
- *
- * @param label  The label check.
- *
- * @return true (1) if the label is legal, false (0) otherwise.
- */
-int is_label_ok(char *label, int line_number);
-
-/**
- * @brief Checks if the given string is a valid number.
- *
- * @param input  The input to validate.
- *
- * @return 1 if the input is a valid number, 0 otherwise.
- */
-int is_number_ok(char *input);
-
-
-/**
- * @brief Checks if the given word is a valid command.
- *
- * @param word  The word to check.
- *
- * @return true (1) if it's a known command, false (0) otherwise.
- */
-int is_command_ok(char *word);
-
-/**
- * @brief Checks if a label is a reserved word in the language (command, directive, etc.).
- *
- * @param label  The label name to check.
- *
- * @return true (1) if it's reserved, false (0) otherwise.
- */
-int is_reserved_word(const char *label);
-
-
-
-/* ############################### Helpers ############################### */
-
-/**
- * Removes the symbol ';' from the line.
- *
- * @param line The line we want to remove the ; symbol from.
- *
- */
-void remove_comment_symbol(char *line);
-
-/**
- * Returns 1 if any of the given words appears in the line.
- * Otherwise returns 0.
- * 
- * @param line      The line we're looking for our word in.
- * @param words     The list of words we're looking for (Either commands or directives)
- * @param amount    The amount of words in the list.
- */
-int contains_any_word(const char *line, const char *words[], int amount);
-
-/** 
- * Returns the index of the word in the line
- * 
- * @param line      The line we're looking for our word in.
- * @param words     The list of words we're looking for (Either commands or directives)
- * @param amount    The amount of words in the list.
- */
-int find_any_word_index(const char *line, const char *words[], int amount);
 
 #endif /* FIRST_PASS_FUNCTIONS_H */

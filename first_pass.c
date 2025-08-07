@@ -10,18 +10,19 @@
  * and the type of input they have, while also announcing errors.
  *
  * Key responsibilities:
- * - Find the register labels and their addresses.
- * - Store data and update the Data Counter.
- * - Update the Instruction Counter.
+ * + Find the register labels and their addresses.
+ * + Store data and update the Data Counter.
+ * + Update the Instruction Counter.
  *
- * Errors during this pass will be counted 
- * But will not stop the program immediately, 
+ * Errors during this pass will be counted,
+ * but will not stop the program immediately, 
  * only after the passed has finished scanning the file.
  *
  * @param file  The name of the '.am' file to read.
  * @param table The assembler_table structure.
  *
- * @return 1 if the pass completed successfully without errors, and a 0 if there were any errors.
+ * @return true (1) if the pass completed successfully without errors, 
+ * and a false (0) if there were any errors.
  */
 
 int first_pass(const char *file, assembler_table *table) 
@@ -45,7 +46,7 @@ int first_pass(const char *file, assembler_table *table)
     /* Opens 'file.am' */
     am = fopen(full_file, "r");
 
-    /* Checks if file was opened. Returns error if no. */
+    /* Checks if file was opened. Prints error if no. */
     if (!am) 
     {
         first_pass_errors(ERR_AM_FILE, -1, -1);
@@ -65,16 +66,20 @@ int first_pass(const char *file, assembler_table *table)
     fclose(am);
     free(full_file);
 
+    /* Checks if the memory limit was exceeded. Prints error if yes. */
+    if (table->data_counter + table->instruction_counter > MAX_MEMORY)
+    {
+        first_pass_errors(ERR_MAX_MEMORY, -1, error_count);
+        error_count++;
+    }
 
-    /* Checks if there were any errors. Returns error if yes, and stops the program. */
+    /* Checks if there were any errors. Prints error if yes, and stops the program. */
     if (error_count != 0)
     {
         first_pass_errors(ERR_AMOUNT_OF_ERRORS, -1, error_count);
-        return(0);
+        return(false);
     }
 
-    
-
     /* If there were no errors returns 1. */
-    return 1;
+    return true;
 }

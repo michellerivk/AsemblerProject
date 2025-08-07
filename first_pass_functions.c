@@ -39,7 +39,9 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     char src[MAX_LINE_LENGTH] = "", dest[MAX_LINE_LENGTH] = "";
     int i = 0;
 
-    remove_comment_symbol(line);
+    remove_comment_symbol(line); /* Removes comment symbol */
+
+    check_double_comma(line, line_number, error_count); /* Checks for double comma */
 
     /* The line doesn't have a label */
     if (!strchr(line, ':'))
@@ -64,6 +66,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
 
             encode_command(table, check_command_value(command_name), src, dest, NULL);
         }
+
         else
         {         
 
@@ -184,7 +187,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
                 return;
             }
 
-            /* Returns error if no */
+            /* Prints error if no */
             first_pass_errors(ERR_NOT_COMMAND_OR_DIRECTIVE, line_number, -1);
             (*error_count)++;
             return;
@@ -965,7 +968,7 @@ char *get_label(char *line, int i)
         len++;
     }
 
-    /* Checks if there are ':'. If no there's no label, and returns NULL */
+    /* Checks if there are ':'. If no, there's no label -> returns NULL */
     if (line[i + len] != ':')
     {
         return NULL;
@@ -1045,14 +1048,6 @@ void add_entry_addresses(assembler_table *table, int *error_count)
                 }
                 defined = defined->next;
             }
-
-            /*
-            if (defined == NULL)
-            {
-                printf("ERROR: entry label '%s' has no matching CODE/DATA label in the file.\n", entry->name);
-                (*error_count)++;
-                return;
-            }*/
         }
 
         entry = entry->next;
@@ -1193,248 +1188,4 @@ void add_command_node(assembler_table *table, command *new_node)
         }
         temp->next = new_node;
     }
-}
-
-/* ############################### Error Checks ############################### */
-
-/**
- * Validates the name of a label.
- *
- * @param label  The label check.
- * @param line_number  The number of the line in the source file.
- *
- * @return true (1) if the label is legal, false (0) otherwise.
- */
-int is_label_ok(char *label, int line_number)
-{
-    char label_name[MAX_LABEL_LENGTH];
-    int i = 0;
-
-    /* Checks if the label starts with a letter. Returns an error if no using else. */
-    if (isalpha(label[i]))
-    {
-        /* Checks if the label ends with ':'. Returns an error if no. */
-        if (strchr(label, ':') != NULL)
-        {
-            while (label[i] != ':' && i < MAX_LABEL_LENGTH - 1 && label[i] != '\0')
-            {
-                /* Checks if all the characters in the label are letters/digits. Returns an error if no. */
-                if (isalpha(label[i]) || isdigit(label[i]))
-                {
-                    label_name[i] = label[i];
-                    i++;
-                }
-                else
-                {
-                    first_pass_errors(ERR_LABEL_IS_NOT_ALPHANUMERIC, line_number, -1);
-                    return false;
-                }
-            }
-
-            /* Checks if the label ends with a ':' */
-            if (label[i] != ':')
-            {
-                first_pass_errors(ERR_LABEL_ENDING, line_number, -1);
-                return false;
-            }
-
-            /* End the label name */
-            label_name[i] = '\0';
-        }
-
-        /* Checks if the label is a reserved word. Returns an error if yes. */
-        if (is_reserved_word(label_name))
-        {
-            first_pass_errors(ERR_LABEL_RESERVED, line_number, -1);
-            return false;
-        }
-    }
-
-    else
-    {
-        first_pass_errors(ERR_LABEL_START, line_number, -1);
-        return false;
-    }
-
-    /* Returns true if the label is valid */
-    return true;
-}
-
-/**
- * Checks if the given string is a valid number.
- *
- * @param input  The input to validate.
- *
- * @return true (1) if the input is a valid number, false (0) otherwise.
- */
-int is_number_ok(char *input)
-{
-    int i = 0;
-
-    /* Skips the number sign */
-    if (input[i] == '-' || input[i] == '+')
-    {
-        i++;
-    }
-
-    /* Checks if the first digit is a digit */
-    if (!isdigit(input[i]))
-    {
-        return false;
-    }
-
-    /* Checks the rest of the input */
-    while (input[i] != '\0' && input[i] != '\n')
-    {
-        if (!isdigit(input[i]))
-        {
-            return false;
-        }
-        i++;
-    }
-
-    return true;
-}
-
-/**
- * Checks if the given word is a valid command.
- *
- * @param word  The word to check.
- *
- * @return true (1) if it's a known command, false (0) otherwise.
- */
-int is_command_ok(char *word)
-{
-    char *commands[] =
-        {
-            "mov",
-            "cmp",
-            "add",
-            "sub",
-            "not",
-            "clr",
-            "lea",
-            "inc",
-            "dec",
-            "jmp",
-            "bne",
-            "red",
-            "prn",
-            "jsr",
-            "rts",
-            "stop",
-        };
-
-    int amount_of_commands = 16;
-
-    int i;
-
-    /* Checks if the given word is a command */
-    for (i = 0; i < amount_of_commands; i++)
-    {
-        if (strcmp(word, commands[i]) == 0)
-            return true;
-    }
-    return false;
-}
-
-/**
- * Checks if a label is a reserved word in the language (command, directive, etc.).
- *
- * @param label  The label name to check.
- *
- * @return true (1) if it's reserved, false (0) otherwise.
- */
-int is_reserved_word(const char *label)
-{
-    const char *reserved[] = {
-        "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec",
-        "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
-        ".data", ".string", ".mat", ".entry", ".extern",
-        "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
-        "mcro", "mcroend"};
-
-    int reserved_words = sizeof(reserved) / sizeof(reserved[0]);
-    int i;
-    for (i = 0; i < reserved_words; i++)
-    {
-        if (strcmp(label, reserved[i]) == 0)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-/* ############################### Helpers ############################### */
-
-/**
- * Returns 1 if any of the given words appears in the line.
- * Otherwise returns 0.
- * 
- * @param line      The line we're looking for our word in.
- * @param words     The list of words we're looking for (Either commands or directives)
- * @param amount    The amount of words in the list.
- */
-int contains_any_word(const char *line, const char *words[], int amount)
-{
-    int i;
-    bool exists = false;
-
-    for (i = 0; i < amount; i++) 
-    {
-        if (strstr(line, words[i]) != NULL) 
-        {
-            exists = true;        
-        }
-    }
-
-    return exists;
-}
-
-/** 
- * Returns the index of the word in the line
- * 
- * @param line      The line we're looking for our word in.
- * @param words     The list of words we're looking for (Either commands or directives)
- * @param amount    The amount of words in the list.
- */
-int find_any_word_index(const char *line, const char *words[], int amount)
-{
-    int i;
-    const char *indx;
-
-    for (i = 0; i < amount; i++) 
-    {
-        indx = strstr(line, words[i]);
-        if (indx) 
-        {
-            return (int)(indx - line); /* Returns the number of characters between the word and the start. */
-        }
-    }
-    return -1;
-}
-
-
-
-/**
- * Removes the symbol ';' from the line.
- *
- * @param line The line we want to remove the ; symbol from.
- *
- */
-void remove_comment_symbol(char *line)
-{
-    int i = 0;
-    int j = 0;
-
-    while (line[i] != '\0')
-    {
-        if (line[i] != ';')
-        {
-            line[j++] = line[i];
-        }
-        i++;
-    }
-    line[j] = '\0';
 }

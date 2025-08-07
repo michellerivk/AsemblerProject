@@ -1,16 +1,40 @@
+;
+      ;
 MAIN: mov M1[r2][r7],LENGTH 
 add r2,STR 
 LOOP: jmp END 
 prn #-5 
+
 mcro  a_mcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
+           ;
 
 
+mcro  1XXXX
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  XXX?XXX
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+;Not error delete whitespace
+mcro  XXX      XXX
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
 
 mcro  a_mcXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  stop
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
@@ -29,6 +53,33 @@ mcro  mov
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
+mcro  r2
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  mcroend
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  prn
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  .mat
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+mcro  .entry
+    mov M1[r3][r3],r3 
+    bne LOOP 
+mcroend
+
+
+
 
 mcro  jmp
     mov M1[r3][r3],r3 
@@ -39,6 +90,7 @@ mcro  mcro
     mov M1[r3][r3],r3 
     bne LOOP 
 mcroend
+
 
 mcro  a_mcXXXXXXXXXXXX&XXX
     mov M1[r3][r3],r3 

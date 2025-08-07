@@ -3,7 +3,6 @@
 
 /* ############################### Error checks for the given line ############################### */
 
-
 /**
  * Checks if the operations in the given command in the line are correct,
  * according to the operation type.
@@ -141,7 +140,7 @@ bool check_one_operands(char *line, int i, int *error_count, char *name, char *o
     }
     if (strcmp(name, "prn") == 0)
     {
-        if (is_register(operand) || is_immediate(operand) || is_label(operand)) 
+        if (is_register(operand) || is_immediate(operand) || is_label(operand) || is_matrix(operand)) 
         {
             ok = true;
         }
@@ -184,8 +183,22 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
     int count = 0; /* Counts the number of operands */
     bool src_ok = false, dest_ok = false;
 
-
     strcpy(temp_line, &line[i]);
+
+    /* Checks if there is a missing bracket */
+    if (strchr(temp_line, '[') && strchr(temp_line, ']') == NULL) 
+    {
+        first_pass_errors(ERR_MISSING_BRACKET, line_number, -1);
+        (*error_count)++;
+        return false;
+    }
+
+    if (!strchr(temp_line, '[') && strchr(temp_line, ']') ) 
+    {
+        first_pass_errors(ERR_MISSING_BRACKET, line_number, -1);
+        (*error_count)++;
+        return false;
+    }
 
     /* Gets first operand */
     src = strtok(temp_line, ", \t\n");
@@ -215,14 +228,14 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
         return false;
     }
 
-
+    /* Checks if all the operands are ok */
     if (strcmp(name, "cmp") == 0)
     {
-        if (is_register(src) || is_immediate(src) || is_label(src)) 
+        if (is_register(src) || is_immediate(src) || is_label(src) || is_matrix(src)) 
         {
             src_ok = true;
         }
-        if (is_register(dest) || is_immediate(dest) || is_label(dest)) 
+        if (is_register(dest) || is_immediate(dest) || is_label(dest) || is_matrix(dest)) 
         {
             dest_ok = true;
         }
@@ -234,7 +247,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
             src_ok = true;
         }
         
-        if (is_register(dest) || is_label(dest)) 
+        if (is_register(dest) || is_label(dest) || is_matrix(dest)) 
         {
            dest_ok = true;
         }
@@ -246,7 +259,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
             src_ok = true;
         }
         
-        if (is_register(dest) || is_label(dest)) 
+        if (is_register(dest) || is_label(dest) || is_matrix(dest)) 
         {
             dest_ok = true;
         }
@@ -351,14 +364,187 @@ bool is_matrix(char *operand)
 bool is_label(char *operand)
 {
     int i;
+    int op_length = 0; /* The length of the operand */
+
+    for (i = 0; operand[i] != '\0'; i++)
+    {
+        op_length++;
+    }
+    
+    /* Checks if it's not an immediate */
+    if (op_length == 2 && operand[0] == 'r')
+    {
+        return is_immediate(operand);
+    }
+    
     if (!isalpha(operand[0])) 
+        return false;
+    for (i = 1; operand[i] != '\0'; i++) 
+    {
+        if (!isalnum(operand[i])) 
+            return false;
+    }
+    return true;
+}
+
+/**
+ * Validates the name of a label.
+ *
+ * @param label  The label check.
+ * @param line_number  The number of the line in the source file.
+ *
+ * @return true (1) if the label is legal, false (0) otherwise.
+ */
+int is_label_ok(char *label, int line_number)
+{
+    char label_name[MAX_LABEL_LENGTH];
+    int i = 0;
+
+    /* Checks if the label starts with a letter. Prints an error if no. */
+    if (isalpha(label[i]))
+    {
+        /* Checks if the label ends with ':'. Prints an error if no. */
+        if (strchr(label, ':') != NULL)
+        {
+            while (label[i] != ':' && i < MAX_LABEL_LENGTH - 1 && label[i] != '\0')
+            {
+                /* Checks if all the characters in the label are letters/digits. 
+                Prints an error if no, and returns false (0) */
+                if (isalpha(label[i]) || isdigit(label[i]))
+                {
+                    label_name[i] = label[i];
+                    i++;
+                }
+                else
+                {
+                    first_pass_errors(ERR_LABEL_IS_NOT_ALPHANUMERIC, line_number, -1);
+                    return false;
+                }
+            }
+
+            /* Checks if the label ends with a ':' */
+            if (label[i] != ':')
+            {
+                first_pass_errors(ERR_LABEL_ENDING, line_number, -1);
+                return false;
+            }
+
+            /* End the label name */
+            label_name[i] = '\0';
+        }
+
+        /* Checks if the label is a reserved word. Prints an error if yes. */
+        if (is_reserved_word(label_name))
+        {
+            first_pass_errors(ERR_LABEL_RESERVED, line_number, -1);
+            return false;
+        }
+    }
+
+    else
+    {
+        first_pass_errors(ERR_LABEL_START, line_number, -1);
+        return false;
+    }
+
+    /* Returns true (1) if the label is valid */
+    return true;
+}
+
+/**
+ * Checks if the given string is a valid number.
+ *
+ * @param input  The input to validate.
+ *
+ * @return true (1) if the input is a valid number, false (0) otherwise.
+ */
+int is_number_ok(char *input)
+{
+    int i = 0;
+
+    /* Skips the number sign */
+    if (input[i] == '-' || input[i] == '+')
+    {
+        i++;
+    }
+
+    /* Checks if the first digit is a digit */
+    if (!isdigit(input[i]))
     {
         return false;
     }
 
-    for (i = 1; i < strlen(operand) - 1; i++) 
+    /* Checks the rest of the input */
+    while (input[i] != '\0' && input[i] != '\n')
     {
-        if (!isalnum(operand[i])) return false;
+        if (!isdigit(input[i]))
+        {
+            return false;
+        }
+        i++;
     }
+
     return true;
 }
+
+/**
+ * Checks if the given word is a valid command.
+ *
+ * @param word  The word to check.
+ *
+ * @return true (1) if it's a known command, false (0) otherwise.
+ */
+int is_command_ok(char *word)
+{
+    char *commands[] =
+        {
+            "mov", "cmp", "add", "sub", 
+            "not", "clr", "lea", "inc", 
+            "dec", "jmp", "bne", "red",
+            "prn", "jsr", "rts","stop"
+        };
+
+    int amount_of_commands = 16;
+
+    int i;
+
+    /* Checks if the given word is a command */
+    for (i = 0; i < amount_of_commands; i++)
+    {
+        if (strcmp(word, commands[i]) == 0)
+            return true;
+    }
+    return false;
+}
+
+/**
+ * Checks if a label is a reserved word in the language (command, directive, etc.).
+ *
+ * @param label  The label name to check.
+ *
+ * @return true (1) if it's reserved, false (0) otherwise.
+ */
+int is_reserved_word(const char *label)
+{
+    const char *reserved[] = 
+    {
+        "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec",
+        "jmp", "bne", "red", "prn", "jsr", "rts", "stop",
+        ".data", ".string", ".mat", ".entry", ".extern",
+        "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
+        "mcro", "mcroend"
+    };
+
+    int reserved_words = sizeof(reserved) / sizeof(reserved[0]);
+    int i;
+    for (i = 0; i < reserved_words; i++)
+    {
+        if (strcmp(label, reserved[i]) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+

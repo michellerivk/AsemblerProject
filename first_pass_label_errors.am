@@ -1,0 +1,8 @@
+;
+1start:movr1,r2
+;
+bad$label:addr3,r4
+;
+mov:addr3,r4
+;
+stop:addr3,r4
