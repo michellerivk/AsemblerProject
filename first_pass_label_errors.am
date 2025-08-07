@@ -1,0 +1,8 @@
+;
+;
+1start:movr1,r2
+;
+bad$label:addr3,r4
+;
+loop:jmploop
+loop:prnr1

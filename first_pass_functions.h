@@ -257,45 +257,4 @@ void add_label_node(assembler_table *table, label *new_node);
  */
 void add_command_node(assembler_table *table, command *new_node);
 
-
-
-/* ############################### Error Checks ############################### */
-
-/**
- * @brief Validates the name of a label.
- *
- * @param label  The label check.
- *
- * @return true (1) if the label is legal, false (0) otherwise.
- */
-int is_label_ok(char *label, int line_number);
-
-/**
- * @brief Checks if the given string is a valid number.
- *
- * @param input  The input to validate.
- *
- * @return 1 if the input is a valid number, 0 otherwise.
- */
-int is_number_ok(char *input);
-
-
-/**
- * @brief Checks if the given word is a valid command.
- *
- * @param word  The word to check.
- *
- * @return true (1) if it's a known command, false (0) otherwise.
- */
-int is_command_ok(char *word);
-
-/**
- * @brief Checks if a label is a reserved word in the language (command, directive, etc.).
- *
- * @param label  The label name to check.
- *
- * @return true (1) if it's reserved, false (0) otherwise.
- */
-int is_reserved_word(const char *label);
-
 #endif /* FIRST_PASS_FUNCTIONS_H */

@@ -1,0 +1,10 @@
+;
+movr8,r2
+;
+prn
+;
+prn#-a
+;
+addr1,#5
+;
+movLABEL[r1,r2

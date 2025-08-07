@@ -44,4 +44,13 @@ int contains_any_word(const char *line, const char *words[], int amount);
  */
 int find_any_word_index(const char *line, const char *words[], int amount);
 
+/**
+ * Checks if there's a double comma in the line.
+ *
+ * @param line The line to check.
+ *
+ * Prints an error if there is a double comma.
+ */
+void check_double_comma(char *line, int line_number, int *error_count);
+
 #endif /* FIRST_PASS_HELPERS_H */

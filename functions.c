@@ -373,6 +373,14 @@ void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter
         printf("ERROR: The program exceeds the maximum memory limit\n");
         break;
 
+    case ERR_MISSING_BRACKET:
+        printf("ERROR in line %d: There is a missing bracket\n", line);
+        break;
+    
+    case ERR_DOUBLE_COMMA:
+        printf("ERROR in line %d: There is a double comma\n", line);
+        break;
+
     default:
         printf("Error on line %d: Unknown error code.\n", line);
         break;

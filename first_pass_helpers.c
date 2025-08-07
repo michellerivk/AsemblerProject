@@ -72,3 +72,27 @@ void remove_comment_symbol(char *line)
     }
     line[j] = '\0';
 }
+
+/**
+ * Checks if there's a double comma in the line.
+ *
+ * @param line The line to check.
+ *
+ * Prints an error if there is a double comma.
+ */
+void check_double_comma(char *line, int line_number, int *error_count)
+{
+    int i;
+    char copy_of_line[MAX_LINE_LENGTH];
+
+    strcpy(copy_of_line, line);
+
+    for (i = 0; copy_of_line[i]; i++) {
+        if ((copy_of_line[i] == ',' && copy_of_line[i+1] == ',') ||       
+            (i==0 && copy_of_line[i]==',')           ||         
+            (copy_of_line[i]==',' && copy_of_line[i+1]=='\0')) {          
+            first_pass_errors(ERR_DOUBLE_COMMA, line_number, -1);
+            (*error_count)++;
+        }
+    }
+}
