@@ -369,6 +369,10 @@ void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter
         printf("ERROR in line %d: The command should have two operands\n", line);
         break;
 
+    case ERR_MAX_MEMORY:
+        printf("ERROR: The program exceeds the maximum memory limit\n");
+        break;
+
     default:
         printf("Error on line %d: Unknown error code.\n", line);
         break;

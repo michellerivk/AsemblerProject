@@ -3,7 +3,6 @@
 
 /* ############################### Error checks for the given line ############################### */
 
-
 /**
  * Checks if the operations in the given command in the line are correct,
  * according to the operation type.
@@ -362,3 +361,6 @@ bool is_label(char *operand)
     }
     return true;
 }
+
+
+

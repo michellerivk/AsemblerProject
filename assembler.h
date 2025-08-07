@@ -17,6 +17,7 @@
 #define R 2
 #define E 1
 #define SHIFT_AFTER_ARE 2
+#define MAX_MEMORY 255
 
 #define MASK_TWO_BITS 3
 #define UP_TO_CHARACTER 0x61
@@ -80,7 +81,8 @@ typedef enum FIRST_PASS_ERRORS
     ERR_MISSING_OPERAND,            /* An operand is missing */
     ERR_TOO_MANY_OPERANDS,          /* The command has too many operands */
     ERR_SHOULD_HAVE_TWO_OP,         /* The command should have exactly two operands */
-    ERR_OPCODE                      /* The command has the wrong opcode */
+    ERR_OPCODE,                     /* The command has the wrong opcode */
+    ERR_MAX_MEMORY                  /* IC + DC > 255 (Max Memory) */
 } FIRST_PASS_ERRORS;
 
 /*************************************************************************/

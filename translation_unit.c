@@ -71,19 +71,26 @@ void object_file(assembler_table *assembler)
   char dc_dest[MAX_LABEL_LENGTH] = {0};
   FILE *fp_ob = NULL;
 
+  /* Open the .ob file for writing */
   if (!open_object_file(assembler->source_file, file_object, &fp_ob))
   {
     return;
   }
 
+  /* Convert IC and DC to base-4 format */
   translate_ic_dc(assembler->instruction_counter - 100, ic_dest);
   translate_ic_dc(assembler->data_counter, dc_dest);
+
   puts("\n===================trans unite==============\n");
+
+  /* Write IC and DC values to the first line */
   fprintf(fp_ob, "\t%s\t%s\n", ic_dest, dc_dest);
 
+  /* Write machine code and data sections */
   write_code_section(assembler->code_section, fp_ob);
   write_data_section(assembler->data_section, assembler->instruction_counter, fp_ob);
 
+  /* Close the file */
   fclose(fp_ob);
 }
 
@@ -93,8 +100,13 @@ void object_file(assembler_table *assembler)
  */
 bool open_object_file(const char *source_filename, char *file_object, FILE **fp_ob)
 {
+  /* Add .ob suffix to the filename */
   add_suffix(file_object, source_filename, ".ob");
+
+  /* Try to open the file for writing */
   *fp_ob = fopen(file_object, "w");
+
+  /* Return success status */
   return (*fp_ob != NULL);
 }
 
@@ -110,14 +122,18 @@ void write_code_section(command *code_section, FILE *fp_ob)
 
   while (cmd != NULL)
   {
+    /* Convert address and word to base-4 strings */
     trans_base_four(cmd->address, dest_addr);
     trans_base_four(cmd->word.value, dest_word);
 
+    /* Shift address string left (remove leading digit) */
     for (i = 0; i < strlen(dest_addr) - 1; i++)
       dest_addr[i] = dest_addr[i + 1];
     dest_addr[i] = '\0';
 
+    /* Write address and word to file */
     fprintf(fp_ob, "%s\t%s\n", dest_addr, dest_word);
+
     cmd = cmd->next;
   }
 }
@@ -134,14 +150,20 @@ void write_data_section(data *data_section, int ic, FILE *fp_ob)
 
   while (d != NULL)
   {
+    /* Convert address + IC to base-4 string */
     trans_base_four(d->address + ic, dest_addr);
+
+    /* Convert data word to base-4 string */
     trans_base_four(d->word.value, dest_word);
 
+    /* Shift address string left (remove leading digit) */
     for (i = 0; i < strlen(dest_addr) - 1; i++)
       dest_addr[i] = dest_addr[i + 1];
     dest_addr[i] = '\0';
 
+    /* Write address and data to the file */
     fprintf(fp_ob, "%s\t%s\n", dest_addr, dest_word);
+
     d = d->next;
   }
 }
@@ -165,16 +187,20 @@ bool write_extern_usages(external_label *ext_list, FILE *fp_ext)
     while (usage != NULL)
     {
       written = true;
+
+      /* Convert address to base-4 string */
       trans_base_four(usage->address, dest_extern_usage);
 
-      /* Remove first digit (shift left) */
+      /* Shift string left to remove first digit */
       for (i = 0; i < strlen(dest_extern_usage) - 1; i++)
       {
         dest_extern_usage[i] = dest_extern_usage[i + 1];
       }
       dest_extern_usage[i] = '\0';
 
+      /* Write label and address to file */
       fprintf(fp_ext, "%s\t%s\n", ext->label, dest_extern_usage);
+
       usage = usage->next;
     }
 
@@ -183,16 +209,20 @@ bool write_extern_usages(external_label *ext_list, FILE *fp_ext)
 
   return written;
 }
-
 /*
  * Creates the filename with ".ext" and opens the extern file for writing.
  * Returns true if the file was opened successfully.
  */
 bool open_extern_file(const char *source_filename, char *file_external, FILE **fp_ext)
 {
-  add_suffix(file_external, source_filename, ".ext");
-  *fp_ext = fopen(file_external, "w");
-  return (*fp_ext != NULL);
+    /* Add the .ext suffix to the filename */
+    add_suffix(file_external, source_filename, ".ext");
+
+    /* Try to open the file for writing */
+    *fp_ext = fopen(file_external, "w");
+
+    /* Return success status */
+    return (*fp_ext != NULL);
 }
 
 /*
@@ -205,15 +235,19 @@ void ext_file(assembler_table *assembler)
   FILE *fp_ext = NULL;
   bool written;
 
+  /* Try to open the .ext file for writing */
   if (!open_extern_file(assembler->source_file, file_external, &fp_ext))
   {
     return;
   }
 
+  /* Write all external label usages to the file */
   written = write_extern_usages(assembler->external_list, fp_ext);
 
+  /* Close the file */
   fclose(fp_ext);
 
+  /* If nothing was written, delete the empty file */
   if (!written)
   {
     safe_remove(file_external);
@@ -237,6 +271,8 @@ bool write_entry_labels(label *label_list, FILE *fp_ent)
     if (temp->type == ENTRY)
     {
       written = true;
+
+      /* Convert address to base-4 string */
       trans_base_four(temp->address, dest_label_addr);
 
       /* Shift digits one position left (removes leading a) */
@@ -246,6 +282,7 @@ bool write_entry_labels(label *label_list, FILE *fp_ent)
       }
       dest_label_addr[i] = '\0';
 
+      /* Write label and address to the file */
       fprintf(fp_ent, "%s\t%s\n", temp->name, dest_label_addr);
     }
     temp = temp->next;
@@ -260,11 +297,15 @@ bool write_entry_labels(label *label_list, FILE *fp_ent)
  */
 bool open_entry_file(const char *source_filename, char *file_entry, FILE **fp_ent)
 {
+  /* Add .ent suffix to the filename */
   add_suffix(file_entry, source_filename, ".ent");
+
+  /* Try to open the file for writing */
   *fp_ent = fopen(file_entry, "w");
+
+  /* Return success status */
   return (*fp_ent != NULL);
 }
-
 /*
  * Generates the .ent file with ENTRY labels and their addresses.
  * Removes the file if no ENTRY labels exist.
@@ -302,7 +343,7 @@ void ent_file(assembler_table *assembler)
 */
 void translation_unit(assembler_table *assembler)
 {
-  object_file(assembler);
-  ent_file(assembler);
-  ext_file(assembler);
+  object_file(assembler);  /* Write machine code and data to .ob */
+  ent_file(assembler);     /* Write entry labels to .ent */
+  ext_file(assembler);     /* Write external usages to .ext */
 }

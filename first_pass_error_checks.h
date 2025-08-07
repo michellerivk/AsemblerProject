@@ -3,9 +3,20 @@
 
 #include "assembler.h"
 
-/* =============== Functions for the first_pass_error_checks.c file =============== */
-
-/* ############################### Error Checks ############################### */
+/**
+ * @file first_pass_error_checks.h
+ * @brief Header file for error checks of the first pass of the assembler.
+ *
+ * This file contains function declarations from the file:
+ * + first_pass_error_checks.c
+ *
+ * This header declares the functions used during the assembler’s first pass
+ * to validate instruction syntax and operand usage. 
+ * Validations such as:
+ *  + Checksing that each command has the correct number of operands
+ *  + Verifing the operand types (register, immediate, label, matrix)
+ *  + Updating the instruction (IC) and data (DC) counters
+ */
 
 /**
  * @brief Validates the command line.
