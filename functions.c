@@ -278,7 +278,7 @@ void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter
         break;
 
     case ERR_AMOUNT_OF_ERRORS:
-        printf("%d ERRORS has been deected on the first pass.\n", error_counter);
+        printf("%d ERRORS has been detected on the first pass.\n", error_counter);
         break;
 
     case ERR_LABEL_INVALID:

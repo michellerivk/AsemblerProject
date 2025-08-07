@@ -185,6 +185,21 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
 
     strcpy(temp_line, &line[i]);
 
+    /* Checks if there is a missing bracket */
+    if (strchr(temp_line, '[') && strchr(temp_line, ']') == NULL) 
+    {
+        first_pass_errors(ERR_MISSING_BRACKET, line_number, -1);
+        (*error_count)++;
+        return false;
+    }
+
+    if (!strchr(temp_line, '[') && strchr(temp_line, ']') ) 
+    {
+        first_pass_errors(ERR_MISSING_BRACKET, line_number, -1);
+        (*error_count)++;
+        return false;
+    }
+
     /* Gets first operand */
     src = strtok(temp_line, ", \t\n");
     if (src) 
@@ -197,14 +212,6 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
         {
             count++;
         }
-    }
-
-    /* Checks if there is a missing bracket */
-    if (strchr(src, '[') && strchr(src, ']') == NULL) 
-    {
-        first_pass_errors(ERR_MISSING_BRACKET, line_number, -1);
-        (*error_count)++;
-        return false;
     }
 
     /* Checks if there were more than 2 operands */
@@ -221,7 +228,7 @@ bool check_two_operands(char *line, int i, int *error_count, char *name, int lin
         return false;
     }
 
-
+    /* Checks if all the operands are ok */
     if (strcmp(name, "cmp") == 0)
     {
         if (is_register(src) || is_immediate(src) || is_label(src) || is_matrix(src)) 
@@ -357,19 +364,28 @@ bool is_matrix(char *operand)
 bool is_label(char *operand)
 {
     int i;
-    if (!isalpha(operand[0])) 
-    {
-        return false;
-    }
+    int op_length = 0; /* The length of the operand */
 
-    for (i = 1; i < strlen(operand) - 1; i++) 
+    for (i = 0; operand[i] != '\0'; i++)
     {
-        if (!isalnum(operand[i])) return false;
+        op_length++;
+    }
+    
+    /* Checks if it's not an immediate */
+    if (op_length == 2 && operand[0] == 'r')
+    {
+        return is_immediate(operand);
+    }
+    
+    if (!isalpha(operand[0])) 
+        return false;
+    for (i = 1; operand[i] != '\0'; i++) 
+    {
+        if (!isalnum(operand[i])) 
+            return false;
     }
     return true;
 }
-
-
 
 /**
  * Validates the name of a label.

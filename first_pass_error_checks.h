@@ -13,9 +13,10 @@
  * This header declares the functions used during the assembler’s first pass
  * to validate instruction syntax and operand usage. 
  * Validations such as:
- *  + Checksing that each command has the correct number of operands
- *  + Verifing the operand types (register, immediate, label, matrix)
- *  + Updating the instruction (IC) and data (DC) counters
+ * + Making sure that each command has the correct number of operands
+ * + Verifing the operand types (register, immediate, label, matrix)
+ * + Updating the instruction (IC) and data (DC) counters
+ * + Making sure that syntax of the line is ok
  */
 
 /**
@@ -140,7 +141,6 @@ int is_label_ok(char *label, int line_number);
  * @return 1 if the input is a valid number, 0 otherwise.
  */
 int is_number_ok(char *input);
-
 
 /**
  * @brief Checks if the given word is a valid command.

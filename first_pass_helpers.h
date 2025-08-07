@@ -14,7 +14,8 @@
  * This header declares functions used during the assembler’s first pass
  * to preprocess lines, such as:
  * + Removing comment symbols 
- * + Searching for command or directive keywords within a line. 
+ * + Searching for command or directive keywords within a line
+ * + Checking for a double comma 
  */
 
 /**

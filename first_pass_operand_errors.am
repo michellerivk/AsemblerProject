@@ -8,3 +8,5 @@ prn#-a
 addr1,#5
 ;
 movLABEL[r1,r2
+;
+movLABELr1,r2]

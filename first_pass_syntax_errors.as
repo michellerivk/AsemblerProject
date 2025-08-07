@@ -1,9 +1,6 @@
-
-; ERROR: Extra comma
+; Extra comma
 add r3,, r4
-
-; ERROR: Missing operand for a one-operand instruction
+; Missing operand
 not 
-
-; ERROR: Too many operands for a zero-operand instruction
+; Too many operands
 clr r1, r2

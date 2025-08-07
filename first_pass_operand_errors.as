@@ -1,10 +1,12 @@
-; ERROR_INVALID_SRC_OP: Register r8 doesn’t exist
+; Register r8 doesn’t exist
 mov r8, r2
-; ERROR_MISSING_OPERAND: prn needs one operand
+; prn needs one operand
 prn
-; ERROR_INVALID_OP: immediate must be a number
+; wrong operand
 prn #-a
-; ERROR_INVALID_DEST_OP: cannot write to an immediate
+; cannot write to an immediate
 add r1, #5
-; ERROR_INVALID_OP: malformed matrix (missing ‘]’)
+; missing ']'
 mov LABEL[ r1, r2
+; missing '['
+mov LABEL r1, r2]
