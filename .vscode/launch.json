@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/home/michelle/projects/AsemblerProject/assembler",
-            "args": ["first_pass_operand_errors"],
+            "args": ["inputMain"],
             "stopAtEntry": false,
             "cwd": "/home/michelle/projects/AsemblerProject/",
             "environment": [],

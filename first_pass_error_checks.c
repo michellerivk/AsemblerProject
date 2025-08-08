@@ -366,7 +366,7 @@ bool is_label(char *operand)
     int i;
     int op_length = 0; /* The length of the operand */
 
-    for (i = 0; operand[i] != '\0'; i++)
+    for (i = 0; operand[i] != '\0' && operand[i] != '\n'; i++)
     {
         op_length++;
     }
@@ -379,7 +379,7 @@ bool is_label(char *operand)
     
     if (!isalpha(operand[0])) 
         return false;
-    for (i = 1; operand[i] != '\0'; i++) 
+    for (i = 0; operand[i] != '\0' && operand[i] != '\n'; i++) 
     {
         if (!isalnum(operand[i])) 
             return false;
