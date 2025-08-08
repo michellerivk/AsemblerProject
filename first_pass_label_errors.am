@@ -1,8 +1,8 @@
-;
+;Labelcantstartwithadigit
 1start:movr1,r2
-;
+;Illegalcharacterinlabel
 bad$label:addr3,r4
-;
+;Labelcantbeareservedwordoftheasssembler
 mov:addr3,r4
-;
+;Labelcantbeareservedwordoftheasssembler
 stop:addr3,r4
