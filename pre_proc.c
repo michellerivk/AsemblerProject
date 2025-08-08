@@ -2,7 +2,6 @@
 
 /*
   This function removes all spaces and tabs from the given line,
-  and also handles comment lines starting with ';' by truncating them.
   The cleaned result is stored in 'dest'.
 */
 void remove_white_spaces(char dest[MAX_LINE_LENGTH], char *line)
@@ -23,13 +22,7 @@ void remove_white_spaces(char dest[MAX_LINE_LENGTH], char *line)
             j++;
         }
 
-        /* If a comment starts, terminate the line with newline and break */
-        if (line[i] == ';')
-        {
-            temp[j] = '\n';
-            j++;
-            i = strlen(line); /* exit loop */
-        }
+  
     }
 
     temp[j] = '\0';
@@ -42,7 +35,7 @@ void remove_white_spaces(char dest[MAX_LINE_LENGTH], char *line)
   The extracted token is copied into 'dest'. Returns the index after the delimiter.
   If the delimiter is not found, returns 0.
 */
-int extract_token(char dest[MAX_LINE_LENGTH], char *line, char delimiter)
+int my_tokenaizer(char dest[MAX_LINE_LENGTH], char *line, char delimiter)
 {
     int i, found = 0;
 
@@ -75,12 +68,12 @@ void files_initialize(assembler_table **assembler, FILE **fp_as, FILE **fp_am,
 {
 
     /* Generate full path for ".as" and ".am" files */
-    add_suffix((*assembler)->assembly_file, (*assembler)->source_file, ".as");
-    add_suffix((*assembler)->macro_expanded_file, (*assembler)->source_file, ".am");
+    add_ending_to_string((*assembler)->assembly_file, (*assembler)->source_file, ".as");
+    add_ending_to_string((*assembler)->macro_expanded_file, (*assembler)->source_file, ".am");
 
     /* Open the input (.as) and output (.am) files */
-    *fp_as = safe_fopen((*assembler)->assembly_file, "r");
-    *fp_am = safe_fopen((*assembler)->macro_expanded_file, "w");
+    *fp_as = my_fopen((*assembler)->assembly_file, "r");
+    *fp_am = my_fopen((*assembler)->macro_expanded_file, "w");
 
     /* Clear line and macro_name buffers */
     memset(line, '\0', MAX_LINE_LENGTH);
@@ -97,7 +90,7 @@ bool extract_and_validate_macro_name(char *macro_name, char *line, int line_numb
     memset(macro_name, '\0', MAX_LINE_LENGTH);
 
     /* extract macro name after 'mcro' keyword */
-    extract_token(macro_name, line + strlen("mcro"), '\n');
+    my_tokenaizer(macro_name, line + strlen("mcro"), '\n');
 
     /* validate the extracted name */
     return macro_name_examine(macro_name, line_number, list);
@@ -116,7 +109,7 @@ bool read_macro_body(FILE *fp_as, macro_content **content, int *line_counter, ch
     {
         (*line_counter)++;
         remove_white_spaces(line, line); /* clean whitespace */
-        printf("line %d  %s", (*line_counter), line);
+ 
 
         if (strncmp(line, "mcroend", strlen("mcroend")) != 0)
         {
@@ -158,7 +151,7 @@ bool macro_trearment(assembler_table **assembler, char line[MAX_LINE_LENGTH],
         return false;
     }
 
-    printf("macro_name: -%s- \n", macro_name);
+
 
     /* read macro body and check for errors */
     if (!read_macro_body(fp_as, content, line_counter, line))
@@ -286,7 +279,7 @@ bool pre_proc(assembler_table **assembler)
     FILE *fp_as, *fp_am;
 
     /* Counter for line number */
-    int *line_counter = generic_malloc(sizeof(int));
+    int *line_counter = my_malloc(sizeof(int));
 
     bool final_error = true;
     *line_counter = 1;
@@ -296,13 +289,13 @@ bool pre_proc(assembler_table **assembler)
     /* Process lines from .as file */
     while (fgets(line, MAX_LINE_LENGTH, fp_as))
     {
-        printf("line %d %s", *line_counter, line);
+ 
         process_line(line, assembler, fp_as, fp_am, macro_name, &content, line_counter, &final_error);
         memset(line, '\0', MAX_LINE_LENGTH);
         (*line_counter)++;
     }
 
-    printf("\n\n=== ERRORS ===\n");
+ 
 
     /* If any error occurred, delete the generated file */
     if (final_error == false)

@@ -72,20 +72,12 @@ bool process_file(char *filename)
         return false;
     }
 
-    puts("=============First Pass Table:==================");
-    print_assembler_table(assembler);
-
-    puts("==========Start second pass============");
-
     /* Run second pass */
     if (!second_pass(&assembler))
     {
         free_assembler_table(assembler);
         return false;
     }
-
-    puts("=============Second Pass Table:==================");
-    print_assembler_table(assembler);
 
     /* Generate final output files */
     translation_unit(assembler);

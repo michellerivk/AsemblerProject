@@ -52,25 +52,18 @@ int find_any_word_index(const char *line, const char *words[], int amount)
 }
 
 /**
- * Removes the symbol ';' from the line.
+ * Removes the comment from the line.
  *
  * @param line The line we want to remove the ; symbol from.
  *
  */
 void remove_comment_symbol(char *line)
 {
-    int i = 0;
-    int j = 0;
-
-    while (line[i] != '\0')
+    char *comment = strchr(line, ';');
+    if (comment)
     {
-        if (line[i] != ';')
-        {
-            line[j++] = line[i];
-        }
-        i++;
+        *comment = '\n';
     }
-    line[j] = '\0';
 }
 
 /**
