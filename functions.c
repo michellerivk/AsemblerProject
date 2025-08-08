@@ -14,9 +14,9 @@ void free_data_section(data *head)
 }
 
 /*
-* Checks for invalid comment positioning in a line.
-* A comment (';') must appear only at the beginning of the line.
-*/
+ * Checks for invalid comment positioning in a line.
+ * A comment (';') must appear only at the beginning of the line.
+ */
 bool handle_notes_error(char line[], int line_counter)
 {
     int i;
@@ -27,14 +27,13 @@ bool handle_notes_error(char line[], int line_counter)
         if (isspace(line[i - 1]) && line[i] == ';')
         {
             /* report error*/
-            errors_table(ERROR_NOTE_WITH_SPACE , line_counter);
+            errors_table(ERROR_NOTE_WITH_SPACE, line_counter);
             return false;
         }
     }
 
     return true;
 }
-
 
 /* Free a linked list of command nodes */
 void free_code_section(command *head)
@@ -147,7 +146,7 @@ unsigned short move_bits(unsigned short word, unsigned short move)
 /*
  * Allocates memory safely. If allocation fails, an error is printed and program exits.
  */
-void *generic_malloc(long size)
+void *my_malloc(long size)
 {
     void *ptr = malloc(size);
     /* Check if memory allocation failed */
@@ -162,7 +161,7 @@ void *generic_malloc(long size)
 /*
  * Opens a file safely. Exits the program if file cannot be opened.
  */
-FILE *safe_fopen(char *name, char *mode)
+FILE *my_fopen(char *name, char *mode)
 {
     FILE *fp = fopen(name, mode);
     /* If fopen failed, report and exit */
@@ -175,9 +174,9 @@ FILE *safe_fopen(char *name, char *mode)
 }
 
 /*
- * Appends a suffix to a file name to create a new file name.
+ * Appends a ending to a file name to create a new file name.
  */
-void add_suffix(char *dest, const char *file_name, const char *ending)
+void add_ending_to_string(char *dest, const char *file_name, const char *ending)
 {
 
     /* Copy base file name to destination */
@@ -195,7 +194,7 @@ macro *find_macro(macro *head, char *name)
     char temp[MAX_LINE_LENGTH];
     memset(temp, '\0', MAX_LINE_LENGTH); /* Clear temp buffer */
 
-    extract_token(temp, name, '\n'); /* Remove trailing newline */
+    my_tokenaizer(temp, name, '\n'); /* Remove trailing newline */
     while (head != NULL)
     {
         /* Compare macro name */
@@ -250,7 +249,7 @@ void errors_table(ERRORS error_code, int line_counter)
         printf("\nLine length is over then 80 chars .\n");
         break;
     case ERROR_NOTE_WITH_SPACE:
-        printf("Error on line %d: Invalid Note cannot have whitespaces before .\n" , line_counter);
+        printf("Error on line %d: Invalid Note cannot have whitespaces before .\n", line_counter);
         break;
     default:
         printf("Error on line %d: Unknown error code.\n", line_counter);
@@ -376,7 +375,7 @@ void first_pass_errors(FIRST_PASS_ERRORS error_code, int line, int error_counter
     case ERR_MISSING_BRACKET:
         printf("ERROR in line %d: There is a missing bracket\n", line);
         break;
-    
+
     case ERR_DOUBLE_COMMA:
         printf("ERROR in line %d: There is a double comma\n", line);
         break;
@@ -402,123 +401,4 @@ void safe_remove(const char *filename)
         errors_table(FAILED_TO_REMOVE_FILE, -1);
         exit(1);
     }
-}
-
-/*
- * Prints all macros and their contents.
- */
-void print_macros(const macro *macro_list)
-{
-    const macro *current_macro = macro_list;
-    const macro_content *content = NULL;
-    int macro_index = 1, line_num = 0;
-
-    while (current_macro != NULL)
-    {
-        printf("=== Macro %d ===\n", macro_index++);
-        printf("Macro name: %s\n", current_macro->macro_name);
-
-        content = current_macro->content;
-        line_num = 1;
-
-        while (content != NULL)
-        {
-            printf(" Line %d: %s\n", line_num++, content->content_line);
-            content = content->next;
-        }
-
-        current_macro = current_macro->next;
-    }
-}
-
-/*
- * Prints a 10-bit binary representation of a value.
- */
-void print_binary_10bit(unsigned int value)
-{
-    int i;
-    value &= 0x3FF; /* Mask value to 10 bits */
-    for (i = 9; i >= 0; i--)
-    {
-        putchar((value & (1 << i)) ? '1' : '0');
-    }
-}
-
-/*
- * Prints the full contents of an assembler table.
- */
-void print_assembler_table(const assembler_table *table)
-{
-    const label *lbl;
-    const external_label *ext;
-    const external_usage *usage;
-    const data *d;
-    const command *cmd;
-
-    if (table == NULL)
-    {
-        printf("Assembler Table is NULL.\n");
-        return;
-    }
-
-    printf("=== Assembler Table ===\n");
-    printf("Source file: %s\n", table->source_file);
-    printf("Macro expanded file: %s\n", table->macro_expanded_file);
-    printf("Assembly file: %s\n", table->assembly_file);
-    printf("Instruction Counter (IC): %d\n", table->instruction_counter);
-    printf("Data Counter (DC): %d\n\n", table->data_counter);
-
-    /* Print labels list */
-    printf("--- Labels ---\n");
-    lbl = table->label_list;
-    while (lbl != NULL)
-    {
-        printf("Label: %s | Address: %d | Type: %d\n", lbl->name, lbl->address, lbl->type);
-        lbl = lbl->next;
-    }
-
-    /* Print externals */
-    printf("\n--- Externals ---\n");
-    ext = table->external_list;
-    while (ext != NULL)
-    {
-        printf("Extern label: %s\n", ext->label);
-        usage = ext->usage_list;
-        while (usage != NULL)
-        {
-            printf("  Used at address: %d\n", usage->address);
-            usage = usage->next;
-        }
-        ext = ext->next;
-    }
-
-    /* Print data section */
-    printf("\n--- Data Section ---\n");
-    d = table->data_section;
-    while (d != NULL)
-    {
-        printf("Address: %d | Word (bin): ", d->address);
-        print_binary_10bit(d->word.value);
-        printf("\n");
-        d = d->next;
-    }
-
-    /* Print code section */
-    printf("\n--- Code Section ---\n");
-    cmd = table->code_section;
-    while (cmd != NULL)
-    {
-        printf("Address: %d | Word (bin): ", cmd->address);
-        print_binary_10bit(cmd->word.value);
-        if (cmd->referenced_label[0] != '\0')
-        {
-            printf(" | Refers to: %s", cmd->referenced_label);
-        }
-        printf("\n");
-        cmd = cmd->next;
-    }
-
-    /* Print macros list */
-    printf("\n--- Macros ---\n");
-    print_macros(table->macro_list);
 }

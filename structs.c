@@ -4,7 +4,7 @@
    Allocates memory and sets all lists and counters to NULL/0.
    Copies the source file name (argv) into the struct. */
 assembler_table * initialize_assembler_table(char * argv){
-    assembler_table * assembler =  generic_malloc(sizeof(assembler_table));
+    assembler_table * assembler =  my_malloc(sizeof(assembler_table));
     assembler->data_section = NULL;          /* Initialize data section pointer */
     assembler->code_section = NULL;          /* Initialize code section pointer */
     assembler->label_list = NULL;            /* Initialize label list pointer */
@@ -23,7 +23,7 @@ assembler_table * initialize_assembler_table(char * argv){
    Otherwise, traverse to the end and append the new node. */
 void add_to_external_usage(external_usage ** usage_list , int address){
     external_usage * temp = NULL;
-    external_usage  * new_node = generic_malloc(sizeof(external_usage));
+    external_usage  * new_node = my_malloc(sizeof(external_usage));
     new_node->address = address;  /* Set the address where the external label is used */
     new_node->next = NULL;        /* New node is last in list */
 
@@ -46,7 +46,7 @@ void add_to_external_usage(external_usage ** usage_list , int address){
    Otherwise, append to the end. */
 void add_to_macro_list(macro ** head , char * macro_name , macro_content * content){
     macro * temp;
-    macro * new_macro = generic_malloc(sizeof(macro));
+    macro * new_macro = my_malloc(sizeof(macro));
     strcpy(new_macro->macro_name , macro_name); /* Copy macro name */
     new_macro->content = content;                /* Attach macro content */
     new_macro->next = NULL;                       /* New macro is last */
@@ -71,7 +71,7 @@ void add_to_macro_list(macro ** head , char * macro_name , macro_content * conte
    Otherwise, append it to the end. */
 void add_to_content_list(macro_content ** head ,char * content ){
     macro_content * temp;
-    macro_content * new_content_node = generic_malloc(sizeof(macro_content));
+    macro_content * new_content_node = my_malloc(sizeof(macro_content));
     strcpy(new_content_node->content_line , content); /* Copy content line */
     new_content_node->next = NULL;                      /* New content is last */
 

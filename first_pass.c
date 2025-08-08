@@ -28,7 +28,7 @@
 int first_pass(const char *file, assembler_table *table) 
 {
     int error_count = 0; /* Counts the amount of errors */
-    char *full_file = generic_malloc(strlen(file) + 4); /* File name + .am */
+    char *full_file = my_malloc(strlen(file) + 4); /* File name + .am */
     char line[MAX_LINE_LENGTH]; /* A variable to include the lines of the am file */
     int line_number = 0; /* Counts the amount of lines in the file */
     FILE *am; /* A variable to include the opened am file */
@@ -41,7 +41,7 @@ int first_pass(const char *file, assembler_table *table)
     table->data_section = NULL;
     
     /* Adds .am to the file name */
-    add_suffix(full_file, file, ".am");
+    add_ending_to_string(full_file, file, ".am");
 
     /* Opens 'file.am' */
     am = fopen(full_file, "r");

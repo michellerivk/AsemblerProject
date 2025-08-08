@@ -101,7 +101,7 @@ void object_file(assembler_table *assembler)
 bool open_object_file(const char *source_filename, char *file_object, FILE **fp_ob)
 {
   /* Add .ob suffix to the filename */
-  add_suffix(file_object, source_filename, ".ob");
+  add_ending_to_string(file_object, source_filename, ".ob");
 
   /* Try to open the file for writing */
   *fp_ob = fopen(file_object, "w");
@@ -216,7 +216,7 @@ bool write_extern_usages(external_label *ext_list, FILE *fp_ext)
 bool open_extern_file(const char *source_filename, char *file_external, FILE **fp_ext)
 {
     /* Add the .ext suffix to the filename */
-    add_suffix(file_external, source_filename, ".ext");
+    add_ending_to_string(file_external, source_filename, ".ext");
 
     /* Try to open the file for writing */
     *fp_ext = fopen(file_external, "w");
@@ -298,7 +298,7 @@ bool write_entry_labels(label *label_list, FILE *fp_ent)
 bool open_entry_file(const char *source_filename, char *file_entry, FILE **fp_ent)
 {
   /* Add .ent suffix to the filename */
-  add_suffix(file_entry, source_filename, ".ent");
+  add_ending_to_string(file_entry, source_filename, ".ent");
 
   /* Try to open the file for writing */
   *fp_ent = fopen(file_entry, "w");

@@ -221,7 +221,7 @@ char *update_ic(char *line, int i, const char *commands[], int com_len,
 
     if (len != -1)
     {
-        char *command_name = generic_malloc(MAX_LINE_LENGTH);
+        char *command_name = my_malloc(MAX_LINE_LENGTH);
 
         strncpy(command_name, &line[i], len);
         command_name[len] = '\0';
@@ -701,7 +701,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             arg = strtok(copy_of_line, ",");
             while (arg != NULL)
             {
-                data *new_directive = (data *)generic_malloc(sizeof(data));
+                data *new_directive = (data *)my_malloc(sizeof(data));
 
                 /* Checks if the number is valid */
                 if (!is_number_ok(arg))
@@ -747,7 +747,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
             while (line[i] != '\0' && line[i] != '\"')
             {
-                data *new_directive = (data *)generic_malloc(sizeof(data));
+                data *new_directive = (data *)my_malloc(sizeof(data));
 
                 new_directive->word.value = (int)line[i];
                 new_directive->address = table->data_counter;
@@ -767,7 +767,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
             }
 
             /* Adds 0 at the end of the string list */
-            null_node = (data *)generic_malloc(sizeof(data));
+            null_node = (data *)my_malloc(sizeof(data));
 
             null_node->word.value = 0;
             null_node->address = table->data_counter;
@@ -826,7 +826,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
 
         while (arg != NULL)
         {
-            data *mat_node = (data *)generic_malloc(sizeof(data)); /* The node we're adding to the table */
+            data *mat_node = (data *)my_malloc(sizeof(data)); /* The node we're adding to the table */
 
 
             /* Skips white spaces */
@@ -927,7 +927,7 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
  */
 void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_count)
 {
-    label *new_label = (label *)generic_malloc(sizeof(label));
+    label *new_label = (label *)my_malloc(sizeof(label));
 
     /* Inserts the name of the label into the table */
     strcpy(new_label->name, lbl);
@@ -974,7 +974,7 @@ char *get_label(char *line, int i)
         return NULL;
     }
 
-    label = (char *)generic_malloc(len + 1);
+    label = (char *)my_malloc(len + 1);
 
     /* Copies the label name into 'label' */
     memcpy(label, &line[i], len);
@@ -1012,7 +1012,7 @@ void add_external_label_to_table(assembler_table *table, char *name, int *error_
     }
 
     /* Adds a node to the list */
-    lbl = generic_malloc(sizeof(external_label));
+    lbl = my_malloc(sizeof(external_label));
 
     strcpy(lbl->label, name);
     lbl->label[strlen(name)] = '\0';
@@ -1066,7 +1066,7 @@ void add_entry_addresses(assembler_table *table, int *error_count)
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl)
 {
     /*external_label *ext = NULL;*/
-    command *new_command = (command *)generic_malloc(sizeof(command));
+    command *new_command = (command *)my_malloc(sizeof(command));
 
     new_command->word.value = word_value;
     new_command->address = table->instruction_counter;

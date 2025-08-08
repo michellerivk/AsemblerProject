@@ -195,7 +195,7 @@ bool process_file(char *filename);
  * @param delimeter Character that ends the token.
  * @return Position after the delimiter or 0 if not found.
  */
-int extract_token(char dest[MAX_LINE_LENGTH], char *line, char delimeter);
+int my_tokenaizer(char dest[MAX_LINE_LENGTH], char *line, char delimeter);
 /**
  * Removes spaces and tabs from the input line until a comment (';') is reached.
  * The cleaned line is copied into dest.
@@ -209,21 +209,21 @@ void remove_white_spaces(char dest[MAX_LINE_LENGTH], char *line);
  * @param size The number of bytes to allocate.
  * @return Pointer to allocated memory (void*).
  */
-void *generic_malloc(long size);
+void *my_malloc(long size);
 /**
  * Opens a file with the given name and mode, exits on failure.
  * @param name Name of the file.
  * @param mode fopen mode (e.g., "r", "w").
  * @return Pointer to opened file (FILE*).
  */
-FILE *safe_fopen(char *name, char *mode);
+FILE *my_fopen(char *name, char *mode);
 /**
  * Copies the file name to the destination and appends a suffix.
  * @param dest Destination buffer.
  * @param file_name The base file name.
  * @param ending The suffix to append.
  */
-void add_suffix(char *dest, const char *file_name, const char *ending);
+void add_ending_to_string(char *dest, const char *file_name, const char *ending);
 
 /**
  * Checks for invalid comment positioning in a line.
@@ -281,8 +281,7 @@ assembler_table *initialize_assembler_table(char *argv);
  * No return value.
  */
 void add_to_external_usage(external_usage **usage_list, int address);
-void print_macros(const macro *macro);
-void print_assembler_table(const assembler_table *table);
+
 
 /**
  * Executes the second pass of the assembler:
