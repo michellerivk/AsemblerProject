@@ -18,8 +18,7 @@ jsr DIDNTDEFINElabelAsOperand
 not DIDNTDEFINElabelAsOperand
 add r2 , DIDNTDEFINElabelAsOperand
 sub VALID , DIDNTDEFINElabelAsOperand
-;add r3 , M55[r3][r2]
-
+add r3 , M55[r3][r2]
 mov M1[r3][r3],r3
 sub M1[r3][r3],r3
 sub M2[r3][r3],r3
@@ -29,6 +28,8 @@ add VALIID2 , r3
 M2:mov r2 ,r1
 jmp M1[r3][r3]
  mov r2 , r1
+labeltwice:mov r2, r1
+labeltwice:mov r2, r1
 
 
 

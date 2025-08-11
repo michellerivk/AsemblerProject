@@ -237,23 +237,21 @@ void errors_table(ERRORS error_code, int line_counter)
         printf("Error on line %d: Macro name already defined.\n", line_counter);
         break;
     case FAILED_TO_REMOVE_FILE:
-        printf("Failed to remove file.\n");
+        printf("Error: Failed to remove file.\n");
         break;
     case FAILED_TO_OPEN_FILE:
-        printf("Failed to open file.\n");
+        printf("Error: Failed to open file.\n");
         break;
     case MALLOC_FAILED:
-        printf("Malloc fail.\n");
+        printf("Error: Malloc failed.\n");
         break;
     case LINE_LENGTH_EXCEED_MAXIMUM:
-        printf("\nLine length is over then 80 chars .\n");
+        printf("Error on Line %d: line length is over then 80 chars .\n", line_counter);
         break;
     case ERROR_NOTE_WITH_SPACE:
-        printf("Error on line %d: Invalid Note cannot have whitespaces before .\n", line_counter);
+        printf("Error on line %d: Invalid Note cannot have whitespaces before .\n" , line_counter);
         break;
-    default:
-        printf("Error on line %d: Unknown error code.\n", line_counter);
-        break;
+
     }
 }
 

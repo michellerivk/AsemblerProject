@@ -18,7 +18,7 @@ jsrDIDNTDEFINElabelAsOperand
 notDIDNTDEFINElabelAsOperand
 addr2,DIDNTDEFINElabelAsOperand
 subVALID,DIDNTDEFINElabelAsOperand
-;addr3,M55[r3][r2]
+addr3,M55[r3][r2]
 movM1[r3][r3],r3
 subM1[r3][r3],r3
 subM2[r3][r3],r3
@@ -28,3 +28,5 @@ addVALIID2,r3
 M2:movr2,r1
 jmpM1[r3][r3]
 movr2,r1
+labeltwice:movr2,r1
+labeltwice:movr2,r1

@@ -195,7 +195,7 @@ bool check_if_label_defined_as_extern(assembler_table **assembler)
         /* report error if a label is defined both as extern and regular */
         if (duplicate_found)
         {
-            printf("Error: Label '%s' is defined both as extern and regular.\n", ptr_label_ext->label);
+            printf("Error: Label '%s' is defined both as extern and entry.\n", ptr_label_ext->label);
             error = false;
         }
 
