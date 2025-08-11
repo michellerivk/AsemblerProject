@@ -39,11 +39,7 @@ mcro  stop
     bne LOOP 
 mcroend
 
-mcro  a                                                 
-    mov M1[r3][r3],r3 
-    bne LOOP 
-mcroend
-                                                                                               
+                                                                                      
 mcro  a_mc
     mov M1[r3][r3],r3 
     bne LOOP 
@@ -135,8 +131,7 @@ mcro  a_mc
     bne LOOP 
 mcroend  
 
-a_mc 
 
 
-hadar
-M1:  .mat  [2][2]  1,2,3,4 
+
+

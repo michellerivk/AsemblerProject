@@ -19,7 +19,7 @@
  */
 
 /**
- * Removes the symbol ';' from the line.
+ * Removes the comment from the line.
  *
  * @param line The line we want to remove the ; symbol from.
  *

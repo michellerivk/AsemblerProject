@@ -81,7 +81,7 @@ void object_file(assembler_table *assembler)
   translate_ic_dc(assembler->instruction_counter - 100, ic_dest);
   translate_ic_dc(assembler->data_counter, dc_dest);
 
-  puts("\n===================trans unite==============\n");
+ 
 
   /* Write IC and DC values to the first line */
   fprintf(fp_ob, "\t%s\t%s\n", ic_dest, dc_dest);

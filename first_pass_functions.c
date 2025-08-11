@@ -39,7 +39,7 @@ void check_line(char *line, int line_number, assembler_table *table, int *error_
     char src[MAX_LINE_LENGTH] = "", dest[MAX_LINE_LENGTH] = "";
     int i = 0;
 
-    remove_comment_symbol(line); /* Removes comment symbol */
+    remove_comment_symbol(line); /* Removes comment */
 
     check_double_comma(line, line_number, error_count); /* Checks for double comma */
 
@@ -314,7 +314,7 @@ int add_label(assembler_table *table, char *line, int i, int *error_count,
 
     else
     {
-        /* If it wasnt a command nor a directive*/
+        /* If it wasn't a command nor a directive*/
         free(lbl);
         return false;
     }
@@ -369,6 +369,7 @@ int check_word(char *line, int start, const char *words[], int amount, int *erro
  * Returns the opcode value of the given command name.
  *
  * @param com The command name.
+ * 
  * @return The opcode of the command, or -1 if the command is unknown.
  */
 int check_command_value(char *com)
@@ -464,10 +465,10 @@ int get_addressing_mode(char *operand)
  */
 void extract_operands(char *line, int command_start_i, int command_len, char *src, char *dest, int operand_count)
 {
-    char *first = NULL; /* stores the src operand */
-    char *second = NULL; /* stores the dst operand */
+    char *first = NULL; /* Stores the src operand */
+    char *second = NULL; /* Stores the dst operand */
     char *after_command = &line[command_start_i + command_len];
-    char copy[MAX_LINE_LENGTH]; /* stores a copy of the line variable */
+    char copy[MAX_LINE_LENGTH]; /* Stores a copy of the line variable */
 
     strcpy(copy, after_command);
 
@@ -500,11 +501,11 @@ void extract_operands(char *line, int command_start_i, int command_len, char *sr
  */
 void encode_command(assembler_table *table, int opcode, char *src_oper, char *dest_oper, char *lbl)
 {
-    /* source and destination operands */
+    /* Source and destination operands */
     int src_mode;
     int dest_mode;
 
-    /* full machine word */
+    /* Full machine word */
     command_parts word;
 
     /* Checks if there is a source operand */
@@ -536,17 +537,17 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
 
     /* Stores the source address value, if there is one */
     if (src_mode == -1)
-        word.source_addr = 0; /* Stores 0 if there isnt */
+        word.source_addr = 0; /* Stores 0 otherwise */
     else
         word.source_addr = src_mode;
 
     /* Stores the destination address value, if there is one */
     if (dest_mode == -1)
-        word.dest_addr = 0; /* Stores 0 if there isnt */
+        word.dest_addr = 0; /* Stores 0 otherwise */
     else
         word.dest_addr = dest_mode;
 
-    /* ARE bits = 0 during the first pass */
+    /* ARE bits = 0 */
     word.ARE = 0;
 
     create_and_add_command(table, command_to_short(&word), lbl);
@@ -624,6 +625,7 @@ void encode_command(assembler_table *table, int opcode, char *src_oper, char *de
  * Converts a command_parts structure into a machine word.
  *
  * @param parts A command_parts struct.
+ * 
  * @return The binary machine word as unsigned short.
  */
 unsigned short command_to_short(command_parts *parts)
@@ -893,7 +895,6 @@ void add_directive(assembler_table *table, char *line, int *error_count, char *d
     }
     else if (strcmp(directive, ".extern") == 0)
     {
-        /*int type = EXTERNAL;*/
         char *input = strstr(line, ".extern");
 
         if (input != NULL)
@@ -945,7 +946,7 @@ void add_label_to_table(assembler_table *table, char *lbl, int type, int *error_
     new_label->type = type;
     new_label->next = NULL;
 
-    /* add the lable to the list */
+    /* Adds the lable to the list */
     add_label_node(table, new_label);
 }
 
@@ -1065,7 +1066,6 @@ void add_entry_addresses(assembler_table *table, int *error_count)
  */
 void create_and_add_command(assembler_table *table, unsigned short word_value, char *lbl)
 {
-    /*external_label *ext = NULL;*/
     command *new_command = (command *)my_malloc(sizeof(command));
 
     new_command->word.value = word_value;
